@@ -1,0 +1,17 @@
+# Gradle
+.gradle/
+build/
+
+# IntelliJ / Android Studio
+.idea/
+*.iml
+out/
+
+# macOS
+.DS_Store
+
+# Logs
+logs/
+*.log
+hs_err_pid*
+
