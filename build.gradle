@@ -45,3 +45,11 @@ tasks.named('run', JavaExec) {
     jvmArgs = ['-XstartOnFirstThread']
 }
 
+task balance(type: JavaExec) {
+    group = 'application'
+    description = 'Runs the balance analyzer tool'
+    mainClass = 'com.gamedev.towerdefense.util.BalanceAnalyzerTool'
+    classpath = sourceSets.main.runtimeClasspath
+    jvmArgs = ['-XstartOnFirstThread']
+}
+

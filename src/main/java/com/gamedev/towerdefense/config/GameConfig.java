@@ -173,6 +173,7 @@ public class GameConfig {
     }
 
     public static class TowerTypeConfig {
+        private int id;
         private String name;
         private int cost;
         private int range;
@@ -180,6 +181,10 @@ public class GameConfig {
         private float attackCooldown;
         private float projectileSpeed;
         private ColorConfig color;
+
+        public int getId() {
+            return id;
+        }
 
         public String getName() {
             return name;

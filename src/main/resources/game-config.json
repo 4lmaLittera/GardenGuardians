@@ -1,10 +1,13 @@
 {
   "initialBudget": 100,
-  "initialLives": 10,
+  "initialLives": 3,
   "path": {
     "waypoints": [
       { "x": 1280, "y": 360 },
-      { "x": 640, "y": 360 },
+      { "x": 1000, "y": 360 },
+      { "x": 900, "y": 500 },
+      { "x": 640, "y": 500 },
+      { "x": 600, "y": 700 },
       { "x": 250, "y": 500 },
       { "x": 0, "y": 360 }
     ]
@@ -13,7 +16,7 @@
   "waves": [
     {
       "waveNumber": 1,
-      "startTime": 0.0,
+      "startTime": 5.0,
       "enemies": [
         { "health": 100, "speed": 100.0, "spawnDelay": 0.0, "reward": 10 },
         { "health": 100, "speed": 100.0, "spawnDelay": 1.0, "reward": 10 },
@@ -24,27 +27,82 @@
       "waveNumber": 2,
       "startTime": 20.0,
       "enemies": [
-        { "health": 150, "speed": 120.0, "spawnDelay": 0.0, "reward": 15 },
-        { "health": 150, "speed": 120.0, "spawnDelay": 0.5, "reward": 15 },
-        { "health": 150, "speed": 120.0, "spawnDelay": 1.0, "reward": 15 },
-        { "health": 150, "speed": 120.0, "spawnDelay": 1.5, "reward": 15 }
+        { "health": 150, "speed": 110.0, "spawnDelay": 0.0, "reward": 15 },
+        { "health": 150, "speed": 110.0, "spawnDelay": 0.7, "reward": 15 },
+        { "health": 150, "speed": 110.0, "spawnDelay": 1.4, "reward": 15 },
+        { "health": 150, "speed": 110.0, "spawnDelay": 2.1, "reward": 15 }
       ]
     },
     {
       "waveNumber": 3,
-      "startTime": 30.0,
+      "startTime": 40.0,
       "enemies": [
-        { "health": 200, "speed": 150.0, "spawnDelay": 0.0, "reward": 20 },
-        { "health": 200, "speed": 150.0, "spawnDelay": 0.3, "reward": 20 },
-        { "health": 200, "speed": 150.0, "spawnDelay": 0.6, "reward": 20 },
-        { "health": 200, "speed": 150.0, "spawnDelay": 0.9, "reward": 20 },
-        { "health": 200, "speed": 150.0, "spawnDelay": 1.2, "reward": 20 }
+        { "health": 200, "speed": 120.0, "spawnDelay": 0.0, "reward": 20 },
+        { "health": 200, "speed": 120.0, "spawnDelay": 0.5, "reward": 20 },
+        { "health": 200, "speed": 120.0, "spawnDelay": 1.0, "reward": 20 },
+        { "health": 200, "speed": 120.0, "spawnDelay": 1.5, "reward": 20 },
+        { "health": 200, "speed": 120.0, "spawnDelay": 2.0, "reward": 20 }
+      ]
+    },
+    {
+      "waveNumber": 4,
+      "startTime": 60.0,
+      "enemies": [
+        { "health": 250, "speed": 130.0, "spawnDelay": 0.0, "reward": 25 },
+        { "health": 250, "speed": 130.0, "spawnDelay": 0.4, "reward": 25 },
+        { "health": 250, "speed": 130.0, "spawnDelay": 0.8, "reward": 25 },
+        { "health": 250, "speed": 130.0, "spawnDelay": 1.2, "reward": 25 },
+        { "health": 250, "speed": 130.0, "spawnDelay": 1.6, "reward": 25 },
+        { "health": 250, "speed": 130.0, "spawnDelay": 2.0, "reward": 25 }
+      ]
+    },
+    {
+      "waveNumber": 5,
+      "startTime": 80.0,
+      "enemies": [
+        { "health": 300, "speed": 140.0, "spawnDelay": 0.0, "reward": 30 },
+        { "health": 300, "speed": 140.0, "spawnDelay": 0.3, "reward": 30 },
+        { "health": 300, "speed": 140.0, "spawnDelay": 0.6, "reward": 30 },
+        { "health": 300, "speed": 140.0, "spawnDelay": 0.9, "reward": 30 },
+        { "health": 300, "speed": 140.0, "spawnDelay": 1.2, "reward": 30 },
+        { "health": 300, "speed": 140.0, "spawnDelay": 1.5, "reward": 30 },
+        { "health": 300, "speed": 140.0, "spawnDelay": 1.8, "reward": 30 }
+      ]
+    },
+    {
+      "waveNumber": 6,
+      "startTime": 100.0,
+      "enemies": [
+        { "health": 300, "speed": 145.0, "spawnDelay": 0.0, "reward": 30 },
+        { "health": 300, "speed": 145.0, "spawnDelay": 0.4, "reward": 30 },
+        { "health": 300, "speed": 145.0, "spawnDelay": 0.8, "reward": 30 },
+        { "health": 350, "speed": 140.0, "spawnDelay": 1.2, "reward": 35 },
+        { "health": 350, "speed": 140.0, "spawnDelay": 1.6, "reward": 35 },
+        { "health": 350, "speed": 140.0, "spawnDelay": 2.0, "reward": 35 },
+        { "health": 400, "speed": 135.0, "spawnDelay": 2.4, "reward": 40 },
+        { "health": 400, "speed": 135.0, "spawnDelay": 2.8, "reward": 40 }
+      ]
+    },
+    {
+      "waveNumber": 7,
+      "startTime": 120.0,
+      "enemies": [
+        { "health": 400, "speed": 145.0, "spawnDelay": 0.0, "reward": 40 },
+        { "health": 400, "speed": 145.0, "spawnDelay": 0.4, "reward": 40 },
+        { "health": 400, "speed": 145.0, "spawnDelay": 0.8, "reward": 40 },
+        { "health": 450, "speed": 140.0, "spawnDelay": 1.2, "reward": 45 },
+        { "health": 450, "speed": 140.0, "spawnDelay": 1.6, "reward": 45 },
+        { "health": 450, "speed": 140.0, "spawnDelay": 2.0, "reward": 45 },
+        { "health": 500, "speed": 135.0, "spawnDelay": 2.4, "reward": 50 },
+        { "health": 500, "speed": 135.0, "spawnDelay": 2.8, "reward": 50 },
+        { "health": 500, "speed": 135.0, "spawnDelay": 3.2, "reward": 50 }
       ]
     }
   ],
   "towerTypes": [
     {
-      "name": "Basic Bitch",
+      "id": 1,
+      "name": "The Girl",
       "cost": 30,
       "range": 100,
       "damage": 25,
@@ -53,13 +111,24 @@
       "color": { "r": 0.2, "g": 0.6, "b": 1.0, "a": 1.0 }
     },
     {
-      "name": "Gorlock The Destroyer",
-      "cost": 50,
-      "range": 50,
-      "damage": 80,
-      "attackCooldown": 1.5,
+      "id": 2,
+      "name": "The Best Friend",
+      "cost": 65,
+      "range": 60,
+      "damage": 200,
+      "attackCooldown": 1,
       "projectileSpeed": 300.0,
-      "color": { "r": 1.0, "g": 0.2, "b": 0.2, "a": 1.0 }
+      "color": { "r": 0.2, "g": 1.0, "b": 0.2, "a": 1.0 }
+    },
+    {
+      "id": 3,
+      "name": "The Cousing",
+      "cost": 40,
+      "range": 150,
+      "damage": 10,
+      "attackCooldown": 0.15,
+      "projectileSpeed": 1000.0,
+      "color": { "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0 }
     }
   ],
   "worldWidth": 1280,

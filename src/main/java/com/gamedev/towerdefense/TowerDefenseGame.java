@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
@@ -20,7 +21,6 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import com.gamedev.towerdefense.config.GameConfig;
-import com.gamedev.towerdefense.config.GameConfig.TowerTypeConfig;
 import com.gamedev.towerdefense.model.BudgetManager;
 import com.gamedev.towerdefense.model.Enemy;
 import com.gamedev.towerdefense.model.GameState;
@@ -30,6 +30,7 @@ import com.gamedev.towerdefense.model.Position;
 import com.gamedev.towerdefense.model.Projectile;
 import com.gamedev.towerdefense.model.Tower;
 import com.gamedev.towerdefense.model.WaveManager;
+import com.gamedev.towerdefense.util.AnimationManager;
 
 public class TowerDefenseGame extends ApplicationAdapter {
 
@@ -44,6 +45,8 @@ public class TowerDefenseGame extends ApplicationAdapter {
     private ShapeRenderer shapeRenderer;
     private BitmapFont font;
     private Texture backgroundTexture;
+    private Texture beetlTexture;
+    private AnimationManager enemyAnimation;
 
     // Game configuration and managers
     private GameConfig gameConfig;
@@ -72,6 +75,16 @@ public class TowerDefenseGame extends ApplicationAdapter {
 
         // Load background texture
         backgroundTexture = new Texture(Gdx.files.internal("assets/images/grass_template2.jpg"));
+
+        beetlTexture = new Texture(Gdx.files.internal("assets/images/BeetleMove.png"));
+
+        // Create enemy animation (adjust frame dimensions based on your sprite sheet)
+        int frameWidth = 32;
+        int frameHeight = 32;
+        int cols = 4; // Number of frames per row
+        int rows = 4; // Number of rows (4 angles)
+        float frameDuration = 0.2f; // Time per frame in seconds
+        enemyAnimation = new AnimationManager(beetlTexture, frameWidth, frameHeight, cols, rows, frameDuration);
 
         camera = new OrthographicCamera();
         camera.setToOrtho(false, WORLD_WIDTH, WORLD_HEIGHT);
@@ -156,6 +169,7 @@ public class TowerDefenseGame extends ApplicationAdapter {
         renderTowers();
         renderProjectiles();
         renderMoneyCoins();
+        renderTowerPreview();
 
         renderUI();
     }
@@ -266,6 +280,9 @@ public class TowerDefenseGame extends ApplicationAdapter {
         if (Gdx.input.isKeyPressed(Input.Keys.NUM_2)) {
             selectedTowerType = gameConfig.getTowerTypes().get(1);
         }
+        if (Gdx.input.isKeyPressed(Input.Keys.NUM_3)) {
+            selectedTowerType = gameConfig.getTowerTypes().get(2);
+        }
 
         if (!Gdx.input.justTouched()) {
             return;
@@ -300,7 +317,7 @@ public class TowerDefenseGame extends ApplicationAdapter {
                 selectedTowerType.getAttackCooldown(),
                 projectileSpeed,
                 towerPos,
-                selectedTowerType.getName());
+                selectedTowerType.getId());
 
         towers.add(newTower);
         budgetManager.spend(selectedTowerType.getCost());
@@ -386,14 +403,14 @@ public class TowerDefenseGame extends ApplicationAdapter {
         return (float) Math.sqrt(dx * dx + dy * dy);
     }
 
-    private Color getTowerColor(String towerName) {
-        if (towerName == null || gameConfig.getTowerTypes() == null) {
+    private Color getTowerColor(int towerId) {
+        if (gameConfig.getTowerTypes() == null) {
             return new Color(0.8f, 0.8f, 0.2f, 1f); // Default yellow
         }
 
-        // Find tower type by name in config
+        // Find tower type by ID in config
         for (GameConfig.TowerTypeConfig towerType : gameConfig.getTowerTypes()) {
-            if (towerName.equals(towerType.getName())) {
+            if (towerId == towerType.getId()) {
                 GameConfig.ColorConfig colorConfig = towerType.getColor();
                 if (colorConfig != null) {
                     return new Color(colorConfig.getR(), colorConfig.getG(), colorConfig.getB(), colorConfig.getA());
@@ -440,16 +457,22 @@ public class TowerDefenseGame extends ApplicationAdapter {
     }
 
     private void renderEnemies() {
-        shapeRenderer.begin(ShapeType.Filled);
-        shapeRenderer.setColor(0, 0, 1, 1);
+        if (enemyAnimation == null) {
+            return;
+        }
+
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
         for (Enemy enemy : enemies) {
             if (!enemy.isAlive()) {
                 continue;
             }
             Position enemyPos = enemy.getPosition();
-            shapeRenderer.circle(enemyPos.getX(), enemyPos.getY(), 15);
+            int directionRow = enemy.getDirectionRow();
+            TextureRegion currentFrame = enemyAnimation.getFrame(enemy.getAnimationTime(), directionRow);
+            batch.draw(currentFrame, enemyPos.getX() - 32, enemyPos.getY() - 32, 64, 64);
         }
-        shapeRenderer.end();
+        batch.end();
     }
 
     private void renderTowers() {
@@ -465,7 +488,7 @@ public class TowerDefenseGame extends ApplicationAdapter {
 
         shapeRenderer.begin(ShapeType.Filled);
         for (Tower tower : towers) {
-            Color towerColor = getTowerColor(tower.getTowerName());
+            Color towerColor = getTowerColor(tower.getTowerId());
             shapeRenderer.setColor(towerColor.r, towerColor.g, towerColor.b, towerColor.a);
             Position towerPos = tower.getPosition();
             shapeRenderer.rect(towerPos.getX() - 10, towerPos.getY() - 10, 20, 20);
@@ -490,6 +513,53 @@ public class TowerDefenseGame extends ApplicationAdapter {
             Position coinPos = coin.getPosition();
             shapeRenderer.circle(coinPos.getX(), coinPos.getY(), 8);
         }
+        shapeRenderer.end();
+    }
+
+    private void renderTowerPreview() {
+        if (selectedTowerType == null || gameState != GameState.PLAYING) {
+            return;
+        }
+
+        if (!budgetManager.canAfford(selectedTowerType.getCost())) {
+            return;
+        }
+
+        // Get cursor position in world coordinates
+        int screenX = Gdx.input.getX();
+        int screenY = Gdx.input.getY();
+        Vector2 worldCoords = new Vector2(screenX, screenY);
+        viewport.unproject(worldCoords);
+
+        float worldX = worldCoords.x;
+        float worldY = worldCoords.y;
+
+        // Check if placement is valid
+        boolean isValidPlacement = isValidTowerPlacement(worldX, worldY, selectedTowerType.getRange());
+
+        // Get tower color
+        Color towerColor = getTowerColor(selectedTowerType.getId());
+
+        // Render range circle preview
+        shapeRenderer.begin(ShapeType.Line);
+        float rangeOpacity = 0.5f; // Preview opacity
+        if (isValidPlacement) {
+            shapeRenderer.setColor(towerColor.r, towerColor.g, towerColor.b, rangeOpacity);
+        } else {
+            shapeRenderer.setColor(1f, 0f, 0f, rangeOpacity); // Red when invalid
+        }
+        shapeRenderer.circle(worldX, worldY, selectedTowerType.getRange());
+        shapeRenderer.end();
+
+        // Render tower preview
+        shapeRenderer.begin(ShapeType.Filled);
+        float previewOpacity = 0.6f; // Lower opacity for preview
+        if (isValidPlacement) {
+            shapeRenderer.setColor(towerColor.r, towerColor.g, towerColor.b, previewOpacity);
+        } else {
+            shapeRenderer.setColor(1f, 0f, 0f, previewOpacity); // Red when invalid
+        }
+        shapeRenderer.rect(worldX - 10, worldY - 10, 20, 20);
         shapeRenderer.end();
     }
 
