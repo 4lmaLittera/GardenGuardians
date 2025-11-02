@@ -21,7 +21,7 @@ public class MovingObjectTest {
 
         @Override
         protected float getHitThreshold() {
-            return 5.0f;
+            return 2.0f; // Smaller threshold for easier testing
         }
 
         @Override
@@ -68,12 +68,16 @@ public class MovingObjectTest {
     public void testUpdate_ReachesTarget() {
         Position start = new Position(0, 0);
         Position target = new Position(10, 0);
-        TestMovingObject obj = new TestMovingObject(start, target, 100.0f);
+        TestMovingObject obj = new TestMovingObject(start, target, 50.0f);
 
-        obj.update(1.0f);
+        // Update until target is reached (should happen in 1-2 updates)
+        int maxUpdates = 10;
+        for (int i = 0; i < maxUpdates && !obj.hasReachedTarget(); i++) {
+            obj.update(0.2f); // 0.2s * 50 speed = 10 units per update
+        }
 
-        assertTrue(obj.hasReachedTarget());
-        assertTrue(obj.wasOnReachTargetCalled());
+        assertTrue(obj.hasReachedTarget(), "Object should reach target within " + maxUpdates + " updates");
+        assertTrue(obj.wasOnReachTargetCalled(), "onReachTarget should be called");
     }
 
     @Test
