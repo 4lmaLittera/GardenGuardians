@@ -10,7 +10,8 @@ import java.util.List;
 
 public class WaveManagerTest {
 
-    private GameConfig.WaveConfig createWaveConfig(int waveNumber, float startTime, List<GameConfig.WaveEnemyConfig> enemies) {
+    private GameConfig.WaveConfig createWaveConfig(int waveNumber, float startTime,
+            List<GameConfig.WaveEnemyConfig> enemies) {
         GameConfig.WaveConfig wave = new GameConfig.WaveConfig();
         try {
             Field waveNumberField = GameConfig.WaveConfig.class.getDeclaredField("waveNumber");
@@ -113,7 +114,7 @@ public class WaveManagerTest {
 
         WaveManager waveManager = new WaveManager(waves);
         List<Enemy> enemyList = new ArrayList<>();
-        Path path = new Path(Arrays.asList(new Position(0, 0), new Position(100, 0)));
+        Path path = new LinearPath(Arrays.asList(new Position(0, 0), new Position(100, 0)));
 
         waveManager.update(5f, enemyList, path);
 
@@ -131,7 +132,7 @@ public class WaveManagerTest {
 
         WaveManager waveManager = new WaveManager(waves);
         List<Enemy> enemyList = new ArrayList<>();
-        Path path = new Path(Arrays.asList(new Position(0, 0), new Position(100, 0)));
+        Path path = new LinearPath(Arrays.asList(new Position(0, 0), new Position(100, 0)));
 
         assertEquals(0, enemyList.size());
 
@@ -153,7 +154,7 @@ public class WaveManagerTest {
 
         WaveManager waveManager = new WaveManager(waves);
         List<Enemy> enemyList = new ArrayList<>();
-        Path path = new Path(Arrays.asList(new Position(0, 0), new Position(100, 0)));
+        Path path = new LinearPath(Arrays.asList(new Position(0, 0), new Position(100, 0)));
 
         waveManager.update(0.5f, enemyList, path);
         assertEquals(1, enemyList.size());
@@ -179,7 +180,7 @@ public class WaveManagerTest {
 
         WaveManager waveManager = new WaveManager(waves);
         List<Enemy> enemyList = new ArrayList<>();
-        Path path = new Path(Arrays.asList(new Position(0, 0), new Position(100, 0)));
+        Path path = new LinearPath(Arrays.asList(new Position(0, 0), new Position(100, 0)));
 
         waveManager.update(1f, enemyList, path);
         assertEquals(1, enemyList.size());
@@ -200,7 +201,7 @@ public class WaveManagerTest {
 
         WaveManager waveManager = new WaveManager(waves);
         List<Enemy> enemyList = new ArrayList<>();
-        Path path = new Path(Arrays.asList(new Position(0, 0), new Position(100, 0)));
+        Path path = new LinearPath(Arrays.asList(new Position(0, 0), new Position(100, 0)));
 
         assertFalse(waveManager.areAllWavesComplete());
 
@@ -223,7 +224,7 @@ public class WaveManagerTest {
 
         WaveManager waveManager = new WaveManager(waves);
         List<Enemy> enemyList = new ArrayList<>();
-        Path path = new Path(Arrays.asList(new Position(0, 0), new Position(100, 0)));
+        Path path = new LinearPath(Arrays.asList(new Position(0, 0), new Position(100, 0)));
 
         waveManager.update(1f, enemyList, path);
 
@@ -239,4 +240,3 @@ public class WaveManagerTest {
         assertEquals(0, waveManager.getCurrentWaveNumber());
     }
 }
-

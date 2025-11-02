@@ -11,7 +11,7 @@ public class ProjectileTest {
         List<Position> waypoints = new ArrayList<>();
         waypoints.add(new Position(x, y));
         waypoints.add(new Position(x + 100, y));
-        return new Path(waypoints);
+        return new LinearPath(waypoints);
     }
 
     @Test

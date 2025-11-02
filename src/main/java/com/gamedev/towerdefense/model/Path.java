@@ -4,38 +4,39 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Path {
-    private List<Position> positions;
+public abstract class Path {
+    protected List<Position> positions;
 
-    public Path(List<Position> positions) {
-        this.positions = positions;
+    protected Path(List<Position> positions) {
+        if (positions == null || positions.isEmpty()) {
+            throw new IllegalArgumentException("Path must have at least one waypoint");
+        }
+        this.positions = new ArrayList<>(positions);
     }
 
-    public Path(Position[] positions) {
+    protected Path(Position[] positions) {
+        if (positions == null || positions.length == 0) {
+            throw new IllegalArgumentException("Path must have at least one waypoint");
+        }
         this.positions = Arrays.asList(positions);
     }
+
+    public abstract Position getPositionAt(float t);
+
+    public abstract float getPathLength();
 
     public List<Position> getWaypoints() {
         return new ArrayList<>(positions);
     }
 
     public Position getPoint(int index) {
+        if (index < 0 || index >= positions.size()) {
+            throw new IndexOutOfBoundsException("Waypoint index out of bounds: " + index);
+        }
         return positions.get(index);
-    }
-
-    public float getPathLength() {
-        if (positions.size() < 2) {
-            return 0f;
-        }
-        float length = 0;
-        for (int i = 0; i < positions.size() - 1; i++) {
-            length += Position.distance(positions.get(i), positions.get(i + 1));
-        }
-        return length;
     }
 
     public int getWaypointCount() {
         return this.positions.size();
     }
-
 }

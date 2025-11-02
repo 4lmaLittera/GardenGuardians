@@ -4,6 +4,7 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.gamedev.towerdefense.config.GameConfig;
 import com.gamedev.towerdefense.model.Path;
+import com.gamedev.towerdefense.model.LinearPath;
 import com.gamedev.towerdefense.model.Position;
 
 import java.util.ArrayList;
@@ -266,7 +267,7 @@ public class BalanceAnalyzerTool {
 
     public static BalanceReport analyze(GameConfig config) {
         List<Position> waypoints = config.getPathWaypoints();
-        Path path = new Path(waypoints);
+        Path path = new LinearPath(waypoints);
         return new BalanceReport(config, path);
     }
 }

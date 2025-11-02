@@ -37,7 +37,7 @@ public class TowerTest {
         List<Position> waypoints = new ArrayList<>();
         waypoints.add(new Position(60, 50));
         waypoints.add(new Position(100, 50));
-        Path path = new Path(waypoints);
+        Path path = new LinearPath(waypoints);
 
         List<Enemy> enemies = new ArrayList<>();
         Enemy enemy = new Enemy(path, 100, 10.0f, 0, 10);
@@ -56,7 +56,7 @@ public class TowerTest {
         List<Position> waypoints = new ArrayList<>();
         waypoints.add(new Position(200, 200));
         waypoints.add(new Position(250, 250));
-        Path path = new Path(waypoints);
+        Path path = new LinearPath(waypoints);
 
         List<Enemy> enemies = new ArrayList<>();
         Enemy enemy = new Enemy(path, 100, 10.0f, 0, 10);
@@ -73,7 +73,7 @@ public class TowerTest {
         List<Position> waypoints = new ArrayList<>();
         waypoints.add(new Position(60, 50));
         waypoints.add(new Position(100, 50));
-        Path path = new Path(waypoints);
+        Path path = new LinearPath(waypoints);
 
         List<Enemy> enemies = new ArrayList<>();
         Enemy deadEnemy = new Enemy(path, 100, 10.0f, 0, 10);
@@ -93,21 +93,21 @@ public class TowerTest {
         List<Position> farWaypoints = new ArrayList<>();
         farWaypoints.add(new Position(100, 50));
         farWaypoints.add(new Position(150, 50));
-        Path farPath = new Path(farWaypoints);
+        Path farPath = new LinearPath(farWaypoints);
         Enemy farEnemy = new Enemy(farPath, 100, 10.0f, 0, 10);
         enemies.add(farEnemy);
 
         List<Position> nearWaypoints = new ArrayList<>();
         nearWaypoints.add(new Position(55, 50));
         nearWaypoints.add(new Position(60, 50));
-        Path nearPath = new Path(nearWaypoints);
+        Path nearPath = new LinearPath(nearWaypoints);
         Enemy nearEnemy = new Enemy(nearPath, 100, 10.0f, 0, 10);
         enemies.add(nearEnemy);
 
         List<Position> middleWaypoints = new ArrayList<>();
         middleWaypoints.add(new Position(70, 50));
         middleWaypoints.add(new Position(80, 50));
-        Path middlePath = new Path(middleWaypoints);
+        Path middlePath = new LinearPath(middleWaypoints);
         Enemy middleEnemy = new Enemy(middlePath, 100, 10.0f, 0, 10);
         enemies.add(middleEnemy);
 
@@ -124,7 +124,7 @@ public class TowerTest {
         List<Position> waypoints = new ArrayList<>();
         waypoints.add(new Position(60, 50));
         waypoints.add(new Position(100, 50));
-        Path path = new Path(waypoints);
+        Path path = new LinearPath(waypoints);
 
         List<Enemy> enemies = new ArrayList<>();
         Enemy enemy = new Enemy(path, 100, 10.0f, 0, 10);
@@ -146,7 +146,7 @@ public class TowerTest {
         List<Position> waypoints = new ArrayList<>();
         waypoints.add(new Position(60, 50));
         waypoints.add(new Position(100, 50));
-        Path path = new Path(waypoints);
+        Path path = new LinearPath(waypoints);
 
         List<Enemy> enemies = new ArrayList<>();
         Enemy enemy = new Enemy(path, 100, 10.0f, 0, 10);
@@ -184,7 +184,7 @@ public class TowerTest {
         List<Position> waypoints = new ArrayList<>();
         waypoints.add(new Position(200, 200));
         waypoints.add(new Position(250, 250));
-        Path path = new Path(waypoints);
+        Path path = new LinearPath(waypoints);
 
         List<Enemy> enemies = new ArrayList<>();
         Enemy enemy = new Enemy(path, 100, 10.0f, 0, 10);
@@ -204,7 +204,7 @@ public class TowerTest {
         List<Position> waypoints = new ArrayList<>();
         waypoints.add(new Position(60, 50));
         waypoints.add(new Position(100, 50));
-        Path path = new Path(waypoints);
+        Path path = new LinearPath(waypoints);
 
         List<Enemy> enemies = new ArrayList<>();
         Enemy enemy = new Enemy(path, 100, 10.0f, 0, 10);

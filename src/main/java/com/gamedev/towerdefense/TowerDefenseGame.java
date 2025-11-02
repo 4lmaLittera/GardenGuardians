@@ -26,6 +26,7 @@ import com.gamedev.towerdefense.model.Enemy;
 import com.gamedev.towerdefense.model.GameState;
 import com.gamedev.towerdefense.model.MoneyCoin;
 import com.gamedev.towerdefense.model.Path;
+import com.gamedev.towerdefense.model.CurvedPath;
 import com.gamedev.towerdefense.model.Position;
 import com.gamedev.towerdefense.model.Projectile;
 import com.gamedev.towerdefense.model.Tower;
@@ -138,13 +139,12 @@ public class TowerDefenseGame extends ApplicationAdapter {
             budgetManager = new BudgetManager(gameConfig.getInitialBudget());
             lives = gameConfig.getInitialLives();
 
-            // Setup path
             try {
                 List<Position> waypoints = gameConfig.getPathWaypoints();
                 if (waypoints == null || waypoints.isEmpty()) {
                     throw new RuntimeException("Path waypoints are missing or empty");
                 }
-                path = new Path(waypoints);
+                path = new CurvedPath(waypoints);
             } catch (Exception e) {
                 System.err.println("Failed to setup path: " + e.getMessage());
                 throw new RuntimeException("Cannot start game without path", e);
@@ -597,23 +597,43 @@ public class TowerDefenseGame extends ApplicationAdapter {
 
             shapeRenderer.begin(ShapeType.Line);
             shapeRenderer.setColor(1, 1, 1, 1);
-            List<Position> waypoints = path.getWaypoints();
 
-            if (waypoints == null || waypoints.size() < 2) {
-                shapeRenderer.end();
-                return;
-            }
+            if (path instanceof CurvedPath) {
+                int samples = 100;
+                Position prev = path.getPositionAt(0f);
 
-            for (int i = 0; i < waypoints.size() - 1; i++) {
-                try {
-                    Position start = waypoints.get(i);
-                    Position end = waypoints.get(i + 1);
-                    if (start != null && end != null) {
-                        shapeRenderer.line(start.getX(), start.getY(), end.getX(), end.getY());
+                for (int i = 1; i <= samples; i++) {
+                    try {
+                        float t = (float) i / samples;
+                        Position current = path.getPositionAt(t);
+                        if (prev != null && current != null) {
+                            shapeRenderer.line(prev.getX(), prev.getY(), current.getX(), current.getY());
+                        }
+                        prev = current;
+                    } catch (Exception e) {
+                        System.err.println("Error sampling curve point: " + e.getMessage());
+                        break;
                     }
-                } catch (IndexOutOfBoundsException e) {
-                    System.err.println("Index out of bounds when rendering path: " + e.getMessage());
-                    break;
+                }
+            } else {
+                List<Position> waypoints = path.getWaypoints();
+
+                if (waypoints == null || waypoints.size() < 2) {
+                    shapeRenderer.end();
+                    return;
+                }
+
+                for (int i = 0; i < waypoints.size() - 1; i++) {
+                    try {
+                        Position start = waypoints.get(i);
+                        Position end = waypoints.get(i + 1);
+                        if (start != null && end != null) {
+                            shapeRenderer.line(start.getX(), start.getY(), end.getX(), end.getY());
+                        }
+                    } catch (IndexOutOfBoundsException e) {
+                        System.err.println("Index out of bounds when rendering path: " + e.getMessage());
+                        break;
+                    }
                 }
             }
             shapeRenderer.end();
@@ -622,7 +642,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
             try {
                 shapeRenderer.end();
             } catch (Exception ignored) {
-                // Ignore errors when ending renderer
             }
         }
     }

@@ -5,7 +5,7 @@ public class Enemy {
     private int health;
     private float speed;
     private Path path;
-    private int currentWaypointIndex;
+    private float pathProgress;
     private int reward;
     private float animationTime;
     private int directionRow;
@@ -14,12 +14,20 @@ public class Enemy {
         this.path = path;
         this.health = health;
         this.speed = speed;
-        this.currentWaypointIndex = currentWaypointIndex;
         this.reward = reward;
         this.animationTime = 0f;
         this.directionRow = 0;
-        Position firstWaypoint = path.getPoint(0);
-        this.position = new Position(firstWaypoint.getX(), firstWaypoint.getY());
+
+        if (currentWaypointIndex <= 0) {
+            this.pathProgress = 0f;
+        } else if (currentWaypointIndex >= path.getWaypointCount()) {
+            this.pathProgress = 1f;
+        } else {
+            this.pathProgress = (float) currentWaypointIndex / Math.max(1, path.getWaypointCount() - 1);
+        }
+
+        Position startPos = path.getPositionAt(this.pathProgress);
+        this.position = new Position(startPos.getX(), startPos.getY());
     }
 
     public int getReward() {
@@ -47,7 +55,7 @@ public class Enemy {
     }
 
     public boolean hasReachedEnd() {
-        return currentWaypointIndex >= path.getWaypointCount();
+        return pathProgress >= 1.0f;
     }
 
     public void update(float deltaTime) {
@@ -57,50 +65,40 @@ public class Enemy {
             return;
         }
 
-        while (currentWaypointIndex < path.getWaypointCount()) {
-            Position targetWaypoint = path.getPoint(currentWaypointIndex);
-            float dx = targetWaypoint.getX() - position.getX();
-            float dy = targetWaypoint.getY() - position.getY();
-            float distanceToTarget = (float) Math.sqrt(dx * dx + dy * dy);
-
-            // If already at this waypoint, advance to next
-            if (distanceToTarget < 0.01f) {
-                currentWaypointIndex++;
-                continue;
-            }
-
-            // Calculate direction angle and update direction row
-            float angle = (float) Math.toDegrees(Math.atan2(dy, dx));
-            if (angle < 0) {
-                angle += 360;
-            }
-            directionRow = getDirectionRow(angle);
-
-            // Move toward target
-            float moveDistance = speed * deltaTime;
-
-            if (moveDistance >= distanceToTarget) {
-                position = new Position(targetWaypoint.getX(), targetWaypoint.getY());
-                currentWaypointIndex++;
-            } else {
-                float ratio = moveDistance / distanceToTarget;
-                float newX = position.getX() + dx * ratio;
-                float newY = position.getY() + dy * ratio;
-                position = new Position(newX, newY);
-            }
-            break; // Done moving for this frame
+        float pathLength = path.getPathLength();
+        if (pathLength <= 0f) {
+            return;
         }
+
+        float moveDistance = speed * deltaTime;
+        float progressDelta = moveDistance / pathLength;
+
+        pathProgress = Math.min(1.0f, pathProgress + progressDelta);
+
+        Position newPosition = path.getPositionAt(pathProgress);
+        this.position = new Position(newPosition.getX(), newPosition.getY());
+
+        float lookAheadT = Math.min(1.0f, pathProgress + 0.01f);
+        Position lookAheadPos = path.getPositionAt(lookAheadT);
+        float dx = lookAheadPos.getX() - position.getX();
+        float dy = lookAheadPos.getY() - position.getY();
+
+        float angle = (float) Math.toDegrees(Math.atan2(dy, dx));
+        if (angle < 0) {
+            angle += 360;
+        }
+        directionRow = getDirectionRow(angle);
     }
 
     private int getDirectionRow(float angle) {
         if (angle >= 225 && angle < 315) {
-            return 0; // Down (225-315 degrees)
+            return 0;
         } else if (angle >= 135 && angle < 225) {
-            return 1; // Left (135-225 degrees)
+            return 1;
         } else if (angle >= 315 || angle < 45) {
-            return 2; // Right (315-360 and 0-45 degrees)
+            return 2;
         } else {
-            return 3; // Up (45-135 degrees)
+            return 3;
         }
     }
 
