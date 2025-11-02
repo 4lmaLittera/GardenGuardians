@@ -7,6 +7,7 @@ import java.util.List;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -19,6 +20,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import com.gamedev.towerdefense.config.GameConfig;
+import com.gamedev.towerdefense.config.GameConfig.TowerTypeConfig;
 import com.gamedev.towerdefense.model.BudgetManager;
 import com.gamedev.towerdefense.model.Enemy;
 import com.gamedev.towerdefense.model.GameState;
@@ -297,7 +299,8 @@ public class TowerDefenseGame extends ApplicationAdapter {
                 selectedTowerType.getDamage(),
                 selectedTowerType.getAttackCooldown(),
                 projectileSpeed,
-                towerPos);
+                towerPos,
+                selectedTowerType.getName());
 
         towers.add(newTower);
         budgetManager.spend(selectedTowerType.getCost());
@@ -383,6 +386,25 @@ public class TowerDefenseGame extends ApplicationAdapter {
         return (float) Math.sqrt(dx * dx + dy * dy);
     }
 
+    private Color getTowerColor(String towerName) {
+        if (towerName == null || gameConfig.getTowerTypes() == null) {
+            return new Color(0.8f, 0.8f, 0.2f, 1f); // Default yellow
+        }
+
+        // Find tower type by name in config
+        for (GameConfig.TowerTypeConfig towerType : gameConfig.getTowerTypes()) {
+            if (towerName.equals(towerType.getName())) {
+                GameConfig.ColorConfig colorConfig = towerType.getColor();
+                if (colorConfig != null) {
+                    return new Color(colorConfig.getR(), colorConfig.getG(), colorConfig.getB(), colorConfig.getA());
+                }
+            }
+        }
+
+        // Default color if not found or color not configured
+        return new Color(0.8f, 0.8f, 0.2f, 1f); // Default yellow
+    }
+
     // Render methods
     private void renderPath() {
         shapeRenderer.begin(ShapeType.Line);
@@ -442,8 +464,9 @@ public class TowerDefenseGame extends ApplicationAdapter {
         shapeRenderer.end();
 
         shapeRenderer.begin(ShapeType.Filled);
-        shapeRenderer.setColor(0.8f, 0.8f, 0.2f, 1f);
         for (Tower tower : towers) {
+            Color towerColor = getTowerColor(tower.getTowerName());
+            shapeRenderer.setColor(towerColor.r, towerColor.g, towerColor.b, towerColor.a);
             Position towerPos = tower.getPosition();
             shapeRenderer.rect(towerPos.getX() - 10, towerPos.getY() - 10, 20, 20);
         }

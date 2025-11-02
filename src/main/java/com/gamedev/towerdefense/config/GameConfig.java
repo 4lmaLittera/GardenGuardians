@@ -179,6 +179,7 @@ public class GameConfig {
         private int damage;
         private float attackCooldown;
         private float projectileSpeed;
+        private ColorConfig color;
 
         public String getName() {
             return name;
@@ -202,6 +203,10 @@ public class GameConfig {
 
         public float getProjectileSpeed() {
             return projectileSpeed;
+        }
+
+        public ColorConfig getColor() {
+            return color;
         }
     }
 

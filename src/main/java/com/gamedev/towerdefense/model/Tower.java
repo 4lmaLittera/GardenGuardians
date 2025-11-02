@@ -2,6 +2,8 @@ package com.gamedev.towerdefense.model;
 
 import java.util.List;
 
+import com.gamedev.towerdefense.config.GameConfig.TowerTypeConfig;
+
 public class Tower {
     private int cost;
     private int range;
@@ -10,13 +12,17 @@ public class Tower {
     private float projectileSpeed;
     private Position position;
 
-    public Tower(int cost, int range, int damage, float attackCooldown, float projectileSpeed, Position position) {
+    private String towerName;
+
+    public Tower(int cost, int range, int damage, float attackCooldown, float projectileSpeed, Position position,
+            String towerName) {
         this.cost = cost;
         this.range = range;
         this.damage = damage;
         this.attackCooldown = attackCooldown;
         this.projectileSpeed = projectileSpeed;
         this.position = position;
+        this.towerName = towerName;
     }
 
     public int getCost() {
@@ -37,6 +43,10 @@ public class Tower {
 
     public float getAttackCooldowns() {
         return attackCooldown;
+    }
+
+    public String getTowerName() {
+        return towerName;
     }
 
     public Enemy getNearestEnemy(List<Enemy> enemies) {

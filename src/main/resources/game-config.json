@@ -49,7 +49,8 @@
       "range": 100,
       "damage": 25,
       "attackCooldown": 0.5,
-      "projectileSpeed": 500.0
+      "projectileSpeed": 500.0,
+      "color": { "r": 0.2, "g": 0.6, "b": 1.0, "a": 1.0 }
     },
     {
       "name": "Gorlock The Destroyer",
@@ -57,7 +58,8 @@
       "range": 50,
       "damage": 80,
       "attackCooldown": 1.5,
-      "projectileSpeed": 300.0
+      "projectileSpeed": 300.0,
+      "color": { "r": 1.0, "g": 0.2, "b": 0.2, "a": 1.0 }
     }
   ],
   "worldWidth": 1280,

@@ -10,19 +10,20 @@ public class TowerTest {
     @Test
     public void testConstructor() {
         Position position = new Position(50, 50);
-        Tower tower = new Tower(30, 100, 50, 0.5f, 300f, position);
+        Tower tower = new Tower(30, 100, 50, 0.5f, 300f, position, "Test Tower");
 
         assertEquals(30, tower.getCost());
         assertEquals(100, tower.getRange());
         assertEquals(50, tower.getDamage());
         assertEquals(0.5f, tower.getAttackCooldowns());
         assertEquals(position, tower.getPosition());
+        assertEquals("Test Tower", tower.getTowerName());
     }
 
     @Test
     public void testGetNearestEnemy_NoEnemies() {
         Position towerPos = new Position(50, 50);
-        Tower tower = new Tower(30, 100, 50, 0.5f, 300f, towerPos);
+        Tower tower = new Tower(30, 100, 50, 0.5f, 300f, towerPos, "Test Tower");
         List<Enemy> enemies = new ArrayList<>();
 
         assertNull(tower.getNearestEnemy(enemies));
@@ -31,7 +32,7 @@ public class TowerTest {
     @Test
     public void testGetNearestEnemy_EnemyInRange() {
         Position towerPos = new Position(50, 50);
-        Tower tower = new Tower(30, 100, 50, 0.5f, 300f, towerPos);
+        Tower tower = new Tower(30, 100, 50, 0.5f, 300f, towerPos, "Test Tower");
 
         List<Position> waypoints = new ArrayList<>();
         waypoints.add(new Position(60, 50));
@@ -50,7 +51,7 @@ public class TowerTest {
     @Test
     public void testGetNearestEnemy_EnemyOutOfRange() {
         Position towerPos = new Position(50, 50);
-        Tower tower = new Tower(30, 100, 50, 0.5f, 300f, towerPos);
+        Tower tower = new Tower(30, 100, 50, 0.5f, 300f, towerPos, "Test Tower");
 
         List<Position> waypoints = new ArrayList<>();
         waypoints.add(new Position(200, 200));
@@ -67,7 +68,7 @@ public class TowerTest {
     @Test
     public void testGetNearestEnemy_IgnoresDeadEnemies() {
         Position towerPos = new Position(50, 50);
-        Tower tower = new Tower(30, 100, 50, 0.5f, 300f, towerPos);
+        Tower tower = new Tower(30, 100, 50, 0.5f, 300f, towerPos, "Test Tower");
 
         List<Position> waypoints = new ArrayList<>();
         waypoints.add(new Position(60, 50));
@@ -85,7 +86,7 @@ public class TowerTest {
     @Test
     public void testGetNearestEnemy_FindsNearestWhenMultiple() {
         Position towerPos = new Position(50, 50);
-        Tower tower = new Tower(30, 200, 50, 0.5f, 300f, towerPos);
+        Tower tower = new Tower(30, 200, 50, 0.5f, 300f, towerPos, "Test Tower");
 
         List<Enemy> enemies = new ArrayList<>();
 
@@ -118,7 +119,7 @@ public class TowerTest {
     @Test
     public void testUpdate_CreatesProjectile() {
         Position towerPos = new Position(50, 50);
-        Tower tower = new Tower(30, 100, 50, 0.5f, 300f, towerPos);
+        Tower tower = new Tower(30, 100, 50, 0.5f, 300f, towerPos, "Test Tower");
 
         List<Position> waypoints = new ArrayList<>();
         waypoints.add(new Position(60, 50));
@@ -140,7 +141,7 @@ public class TowerTest {
     @Test
     public void testUpdate_RespectsCooldown() {
         Position towerPos = new Position(50, 50);
-        Tower tower = new Tower(30, 100, 50, 0.5f, 300f, towerPos);
+        Tower tower = new Tower(30, 100, 50, 0.5f, 300f, towerPos, "Test Tower");
 
         List<Position> waypoints = new ArrayList<>();
         waypoints.add(new Position(60, 50));
@@ -167,7 +168,7 @@ public class TowerTest {
     @Test
     public void testUpdate_NoProjectileWhenNoEnemies() {
         Position towerPos = new Position(50, 50);
-        Tower tower = new Tower(30, 100, 50, 0.5f, 300f, towerPos);
+        Tower tower = new Tower(30, 100, 50, 0.5f, 300f, towerPos, "Test Tower");
         List<Enemy> enemies = new ArrayList<>();
         List<Projectile> projectiles = new ArrayList<>();
 
@@ -178,7 +179,7 @@ public class TowerTest {
     @Test
     public void testUpdate_NoProjectileWhenEnemiesOutOfRange() {
         Position towerPos = new Position(50, 50);
-        Tower tower = new Tower(30, 100, 50, 0.5f, 300f, towerPos);
+        Tower tower = new Tower(30, 100, 50, 0.5f, 300f, towerPos, "Test Tower");
 
         List<Position> waypoints = new ArrayList<>();
         waypoints.add(new Position(200, 200));
@@ -198,7 +199,7 @@ public class TowerTest {
     @Test
     public void testUpdate_ProjectileHasCorrectProperties() {
         Position towerPos = new Position(50, 50);
-        Tower tower = new Tower(30, 100, 50, 0.5f, 300f, towerPos);
+        Tower tower = new Tower(30, 100, 50, 0.5f, 300f, towerPos, "Test Tower");
 
         List<Position> waypoints = new ArrayList<>();
         waypoints.add(new Position(60, 50));
@@ -219,5 +220,23 @@ public class TowerTest {
         assertEquals(towerPos.getX(), projPos.getX(), 0.001f);
         assertEquals(towerPos.getY(), projPos.getY(), 0.001f);
         assertFalse(projectile.hasHit());
+    }
+
+    @Test
+    public void testGetTowerName() {
+        Position position = new Position(50, 50);
+        Tower tower = new Tower(30, 100, 50, 0.5f, 300f, position, "Basic Bitch");
+
+        assertEquals("Basic Bitch", tower.getTowerName());
+    }
+
+    @Test
+    public void testGetTowerName_DifferentNames() {
+        Position position = new Position(50, 50);
+        Tower tower1 = new Tower(30, 100, 50, 0.5f, 300f, position, "Basic Bitch");
+        Tower tower2 = new Tower(50, 50, 80, 1.5f, 300f, position, "Gorlock The Destroyer");
+
+        assertEquals("Basic Bitch", tower1.getTowerName());
+        assertEquals("Gorlock The Destroyer", tower2.getTowerName());
     }
 }
