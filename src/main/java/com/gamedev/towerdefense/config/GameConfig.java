@@ -23,10 +23,33 @@ public class GameConfig {
     private VisualConfig visual;
 
     public static GameConfig load(String filename) {
-        FileHandle file = Gdx.files.internal(filename);
-        String json = file.readString();
-        Gson gson = new Gson();
-        return gson.fromJson(json, GameConfig.class);
+        try {
+            FileHandle file = Gdx.files.internal(filename);
+            if (!file.exists()) {
+                throw new RuntimeException("Config file not found: " + filename);
+            }
+            
+            String json = file.readString();
+            if (json == null || json.isEmpty()) {
+                throw new RuntimeException("Config file is empty: " + filename);
+            }
+            
+            Gson gson = new Gson();
+            GameConfig config = gson.fromJson(json, GameConfig.class);
+            
+            if (config == null) {
+                throw new RuntimeException("Failed to parse config file: " + filename);
+            }
+            
+            return config;
+        } catch (RuntimeException e) {
+            System.err.println("Error loading game config: " + e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            System.err.println("Unexpected error loading game config: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to load game configuration", e);
+        }
     }
 
     public int getInitialBudget() {

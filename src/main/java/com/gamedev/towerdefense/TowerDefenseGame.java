@@ -70,62 +70,129 @@ public class TowerDefenseGame extends ApplicationAdapter {
     // Lifecycle methods
     @Override
     public void create() {
-        batch = new SpriteBatch();
-        shapeRenderer = new ShapeRenderer();
+        try {
+            batch = new SpriteBatch();
+            shapeRenderer = new ShapeRenderer();
 
-        // Load background texture
-        backgroundTexture = new Texture(Gdx.files.internal("assets/images/grass_template2.jpg"));
-
-        beetlTexture = new Texture(Gdx.files.internal("assets/images/BeetleMove.png"));
-
-        // Create enemy animation (adjust frame dimensions based on your sprite sheet)
-        int frameWidth = 32;
-        int frameHeight = 32;
-        int cols = 4; // Number of frames per row
-        int rows = 4; // Number of rows (4 angles)
-        float frameDuration = 0.2f; // Time per frame in seconds
-        enemyAnimation = new AnimationManager(beetlTexture, frameWidth, frameHeight, cols, rows, frameDuration);
-
-        camera = new OrthographicCamera();
-        camera.setToOrtho(false, WORLD_WIDTH, WORLD_HEIGHT);
-
-        viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
-
-        font = new BitmapFont();
-        font.getData().setScale(1f, 1f);
-
-        gameConfig = GameConfig.load("game-config.json");
-
-        if (gameConfig.getWorldWidth() > 0) {
-            camera.setToOrtho(false, gameConfig.getWorldWidth(), gameConfig.getWorldHeight());
-            viewport = new FitViewport(gameConfig.getWorldWidth(), gameConfig.getWorldHeight(), camera);
-        }
-
-        budgetManager = new BudgetManager(gameConfig.getInitialBudget());
-
-        lives = gameConfig.getInitialLives();
-
-        List<Position> waypoints = gameConfig.getPathWaypoints();
-        path = new Path(waypoints);
-
-        if (gameConfig.getWaves() != null && !gameConfig.getWaves().isEmpty()) {
-            waveManager = new WaveManager(gameConfig.getWaves());
-        } else {
-            waveManager = new WaveManager(null);
-        }
-
-        if (gameConfig.getInitialEnemies() != null) {
-            for (GameConfig.EnemyConfig enemyConfig : gameConfig.getInitialEnemies()) {
-                int reward = enemyConfig.getReward();
-                if (reward == 0) {
-                    reward = 10;
-                }
-                enemies.add(new Enemy(path, enemyConfig.getHealth(), enemyConfig.getSpeed(), 0, reward));
+            // Load background texture
+            try {
+                backgroundTexture = new Texture(Gdx.files.internal("assets/images/grass_template2.jpg"));
+            } catch (Exception e) {
+                System.err.println("Failed to load background texture: " + e.getMessage());
+                backgroundTexture = null; // Continue without background
             }
-        }
 
-        if (gameConfig.getTowerTypes() != null && !gameConfig.getTowerTypes().isEmpty()) {
-            selectedTowerType = gameConfig.getTowerTypes().get(0);
+            // Load enemy texture
+            try {
+                beetlTexture = new Texture(Gdx.files.internal("assets/images/BeetleMove.png"));
+            } catch (Exception e) {
+                System.err.println("Failed to load enemy texture: " + e.getMessage());
+                beetlTexture = null;
+            }
+
+            // Create enemy animation
+            if (beetlTexture != null) {
+                try {
+                    int frameWidth = 32;
+                    int frameHeight = 32;
+                    int cols = 4;
+                    int rows = 4;
+                    float frameDuration = 0.2f;
+                    enemyAnimation = new AnimationManager(beetlTexture, frameWidth, frameHeight, cols, rows,
+                            frameDuration);
+                } catch (Exception e) {
+                    System.err.println("Failed to create enemy animation: " + e.getMessage());
+                    enemyAnimation = null;
+                }
+            }
+
+            camera = new OrthographicCamera();
+            camera.setToOrtho(false, WORLD_WIDTH, WORLD_HEIGHT);
+            viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
+
+            font = new BitmapFont();
+            font.getData().setScale(1f, 1f);
+
+            // Load game configuration
+            try {
+                gameConfig = GameConfig.load("game-config.json");
+                if (gameConfig == null) {
+                    throw new RuntimeException("Game config is null");
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to load game configuration: " + e.getMessage());
+                e.printStackTrace();
+                throw new RuntimeException("Cannot start game without configuration", e);
+            }
+
+            // Setup camera with config values
+            try {
+                if (gameConfig.getWorldWidth() > 0 && gameConfig.getWorldHeight() > 0) {
+                    camera.setToOrtho(false, gameConfig.getWorldWidth(), gameConfig.getWorldHeight());
+                    viewport = new FitViewport(gameConfig.getWorldWidth(), gameConfig.getWorldHeight(), camera);
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to setup camera: " + e.getMessage());
+            }
+
+            budgetManager = new BudgetManager(gameConfig.getInitialBudget());
+            lives = gameConfig.getInitialLives();
+
+            // Setup path
+            try {
+                List<Position> waypoints = gameConfig.getPathWaypoints();
+                if (waypoints == null || waypoints.isEmpty()) {
+                    throw new RuntimeException("Path waypoints are missing or empty");
+                }
+                path = new Path(waypoints);
+            } catch (Exception e) {
+                System.err.println("Failed to setup path: " + e.getMessage());
+                throw new RuntimeException("Cannot start game without path", e);
+            }
+
+            // Setup wave manager
+            try {
+                if (gameConfig.getWaves() != null && !gameConfig.getWaves().isEmpty()) {
+                    waveManager = new WaveManager(gameConfig.getWaves());
+                } else {
+                    waveManager = new WaveManager(null);
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to setup wave manager: " + e.getMessage());
+                waveManager = new WaveManager(null);
+            }
+
+            // Setup initial enemies
+            try {
+                if (gameConfig.getInitialEnemies() != null) {
+                    for (GameConfig.EnemyConfig enemyConfig : gameConfig.getInitialEnemies()) {
+                        int reward = enemyConfig.getReward();
+                        if (reward == 0) {
+                            reward = 10;
+                        }
+                        enemies.add(new Enemy(path, enemyConfig.getHealth(), enemyConfig.getSpeed(), 0, reward));
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to setup initial enemies: " + e.getMessage());
+            }
+
+            // Setup tower selection
+            try {
+                if (gameConfig.getTowerTypes() != null && !gameConfig.getTowerTypes().isEmpty()) {
+                    selectedTowerType = gameConfig.getTowerTypes().get(0);
+                }
+            } catch (IndexOutOfBoundsException e) {
+                System.err.println("No tower types available: " + e.getMessage());
+                selectedTowerType = null;
+            } catch (Exception e) {
+                System.err.println("Failed to setup tower selection: " + e.getMessage());
+                selectedTowerType = null;
+            }
+        } catch (Exception e) {
+            System.err.println("Critical error during game initialization: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
         }
     }
 
@@ -181,17 +248,44 @@ public class TowerDefenseGame extends ApplicationAdapter {
 
     @Override
     public void dispose() {
-        if (batch != null) {
-            batch.dispose();
+        try {
+            if (batch != null) {
+                batch.dispose();
+            }
+        } catch (Exception e) {
+            System.err.println("Error disposing SpriteBatch: " + e.getMessage());
         }
-        if (shapeRenderer != null) {
-            shapeRenderer.dispose();
+
+        try {
+            if (shapeRenderer != null) {
+                shapeRenderer.dispose();
+            }
+        } catch (Exception e) {
+            System.err.println("Error disposing ShapeRenderer: " + e.getMessage());
         }
-        if (backgroundTexture != null) {
-            backgroundTexture.dispose();
+
+        try {
+            if (backgroundTexture != null) {
+                backgroundTexture.dispose();
+            }
+        } catch (Exception e) {
+            System.err.println("Error disposing background texture: " + e.getMessage());
         }
-        if (font != null) {
-            font.dispose();
+
+        try {
+            if (beetlTexture != null) {
+                beetlTexture.dispose();
+            }
+        } catch (Exception e) {
+            System.err.println("Error disposing enemy texture: " + e.getMessage());
+        }
+
+        try {
+            if (font != null) {
+                font.dispose();
+            }
+        } catch (Exception e) {
+            System.err.println("Error disposing font: " + e.getMessage());
         }
     }
 
@@ -274,16 +368,63 @@ public class TowerDefenseGame extends ApplicationAdapter {
 
     // Input handling
     private void handleInput() {
-        if (Gdx.input.isKeyPressed(Input.Keys.NUM_1)) {
-            selectedTowerType = gameConfig.getTowerTypes().get(0);
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.NUM_2)) {
-            selectedTowerType = gameConfig.getTowerTypes().get(1);
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.NUM_3)) {
-            selectedTowerType = gameConfig.getTowerTypes().get(2);
+        int towerKey = getTowerKeyPressed();
+
+        switch (towerKey) {
+            case 1:
+                toggleTowerSelection(0);
+                break;
+            case 2:
+                toggleTowerSelection(1);
+                break;
+            case 3:
+                toggleTowerSelection(2);
+                break;
+            default:
+                break;
         }
 
+        handleTowerPlacement();
+    }
+
+    private int getTowerKeyPressed() {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) {
+            return 1;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)) {
+            return 2;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_3)) {
+            return 3;
+        }
+        return 0;
+    }
+
+    private void toggleTowerSelection(int towerIndex) {
+        try {
+            if (gameConfig == null || gameConfig.getTowerTypes() == null) {
+                return;
+            }
+
+            if (towerIndex < 0 || towerIndex >= gameConfig.getTowerTypes().size()) {
+                return;
+            }
+
+            GameConfig.TowerTypeConfig towerType = gameConfig.getTowerTypes().get(towerIndex);
+
+            if (selectedTowerType == towerType) {
+                selectedTowerType = null;
+            } else {
+                selectedTowerType = towerType;
+            }
+        } catch (IndexOutOfBoundsException e) {
+            System.err.println("Invalid tower index: " + towerIndex + " - " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error toggling tower selection: " + e.getMessage());
+        }
+    }
+
+    private void handleTowerPlacement() {
         if (!Gdx.input.justTouched()) {
             return;
         }
@@ -321,6 +462,7 @@ public class TowerDefenseGame extends ApplicationAdapter {
 
         towers.add(newTower);
         budgetManager.spend(selectedTowerType.getCost());
+        selectedTowerType = null;
     }
 
     // Utility methods
@@ -352,15 +494,27 @@ public class TowerDefenseGame extends ApplicationAdapter {
             }
         }
 
-        List<Position> waypoints = path.getWaypoints();
-        for (int i = 0; i < waypoints.size() - 1; i++) {
-            Position start = waypoints.get(i);
-            Position end = waypoints.get(i + 1);
-
-            float distToSegment = distanceToLineSegment(pos, start, end);
-            if (distToSegment < minPathDistance) {
+        try {
+            List<Position> waypoints = path.getWaypoints();
+            if (waypoints == null || waypoints.size() < 2) {
                 return false;
             }
+
+            for (int i = 0; i < waypoints.size() - 1; i++) {
+                Position start = waypoints.get(i);
+                Position end = waypoints.get(i + 1);
+
+                float distToSegment = distanceToLineSegment(pos, start, end);
+                if (distToSegment < minPathDistance) {
+                    return false;
+                }
+            }
+        } catch (IndexOutOfBoundsException e) {
+            System.err.println("Index out of bounds when checking tower placement: " + e.getMessage());
+            return false;
+        } catch (Exception e) {
+            System.err.println("Error checking tower placement: " + e.getMessage());
+            return false;
         }
 
         // Check bounds (optional - keep towers on screen)
@@ -372,35 +526,47 @@ public class TowerDefenseGame extends ApplicationAdapter {
     }
 
     private float distanceToLineSegment(Position point, Position lineStart, Position lineEnd) {
-        float A = point.getX() - lineStart.getX();
-        float B = point.getY() - lineStart.getY();
-        float C = lineEnd.getX() - lineStart.getX();
-        float D = lineEnd.getY() - lineStart.getY();
-
-        float dot = A * C + B * D;
-        float lenSq = C * C + D * D;
-        float param = -1;
-
-        if (lenSq != 0) {
-            param = dot / lenSq;
+        if (point == null || lineStart == null || lineEnd == null) {
+            return Float.MAX_VALUE;
         }
 
-        float xx, yy;
+        try {
+            float A = point.getX() - lineStart.getX();
+            float B = point.getY() - lineStart.getY();
+            float C = lineEnd.getX() - lineStart.getX();
+            float D = lineEnd.getY() - lineStart.getY();
 
-        if (param < 0) {
-            xx = lineStart.getX();
-            yy = lineStart.getY();
-        } else if (param > 1) {
-            xx = lineEnd.getX();
-            yy = lineEnd.getY();
-        } else {
-            xx = lineStart.getX() + param * C;
-            yy = lineStart.getY() + param * D;
+            float dot = A * C + B * D;
+            float lenSq = C * C + D * D;
+            float param = -1;
+
+            if (lenSq != 0) {
+                param = dot / lenSq;
+            }
+
+            float xx, yy;
+
+            if (param < 0) {
+                xx = lineStart.getX();
+                yy = lineStart.getY();
+            } else if (param > 1) {
+                xx = lineEnd.getX();
+                yy = lineEnd.getY();
+            } else {
+                xx = lineStart.getX() + param * C;
+                yy = lineStart.getY() + param * D;
+            }
+
+            float dx = point.getX() - xx;
+            float dy = point.getY() - yy;
+            return (float) Math.sqrt(dx * dx + dy * dy);
+        } catch (ArithmeticException e) {
+            System.err.println("Arithmetic error in distance calculation: " + e.getMessage());
+            return Float.MAX_VALUE;
+        } catch (Exception e) {
+            System.err.println("Error calculating distance to line segment: " + e.getMessage());
+            return Float.MAX_VALUE;
         }
-
-        float dx = point.getX() - xx;
-        float dy = point.getY() - yy;
-        return (float) Math.sqrt(dx * dx + dy * dy);
     }
 
     private Color getTowerColor(int towerId) {
@@ -424,36 +590,87 @@ public class TowerDefenseGame extends ApplicationAdapter {
 
     // Render methods
     private void renderPath() {
-        shapeRenderer.begin(ShapeType.Line);
-        shapeRenderer.setColor(1, 1, 1, 1);
-        List<Position> waypoints = path.getWaypoints();
-        for (int i = 0; i < waypoints.size() - 1; i++) {
-            Position start = waypoints.get(i);
-            Position end = waypoints.get(i + 1);
-            shapeRenderer.line(start.getX(), start.getY(), end.getX(), end.getY());
+        try {
+            if (path == null) {
+                return;
+            }
+
+            shapeRenderer.begin(ShapeType.Line);
+            shapeRenderer.setColor(1, 1, 1, 1);
+            List<Position> waypoints = path.getWaypoints();
+
+            if (waypoints == null || waypoints.size() < 2) {
+                shapeRenderer.end();
+                return;
+            }
+
+            for (int i = 0; i < waypoints.size() - 1; i++) {
+                try {
+                    Position start = waypoints.get(i);
+                    Position end = waypoints.get(i + 1);
+                    if (start != null && end != null) {
+                        shapeRenderer.line(start.getX(), start.getY(), end.getX(), end.getY());
+                    }
+                } catch (IndexOutOfBoundsException e) {
+                    System.err.println("Index out of bounds when rendering path: " + e.getMessage());
+                    break;
+                }
+            }
+            shapeRenderer.end();
+        } catch (Exception e) {
+            System.err.println("Error rendering path: " + e.getMessage());
+            try {
+                shapeRenderer.end();
+            } catch (Exception ignored) {
+                // Ignore errors when ending renderer
+            }
         }
-        shapeRenderer.end();
     }
 
     private void renderWaypoints() {
-        List<Position> waypoints = path.getWaypoints();
-        if (waypoints.isEmpty()) {
-            return;
+        try {
+            if (path == null) {
+                return;
+            }
+
+            List<Position> waypoints = path.getWaypoints();
+            if (waypoints == null || waypoints.isEmpty()) {
+                return;
+            }
+
+            shapeRenderer.begin(ShapeType.Filled);
+
+            try {
+                Position startPos = waypoints.get(0);
+                if (startPos != null) {
+                    shapeRenderer.setColor(0, 1, 0, 1);
+                    shapeRenderer.circle(startPos.getX(), startPos.getY(), 10);
+                }
+            } catch (IndexOutOfBoundsException e) {
+                System.err.println("Index out of bounds when rendering start waypoint: " + e.getMessage());
+            }
+
+            try {
+                if (waypoints.size() > 1) {
+                    Position endPos = waypoints.get(waypoints.size() - 1);
+                    if (endPos != null) {
+                        shapeRenderer.setColor(1, 0, 0, 1);
+                        shapeRenderer.circle(endPos.getX(), endPos.getY(), 10);
+                    }
+                }
+            } catch (IndexOutOfBoundsException e) {
+                System.err.println("Index out of bounds when rendering end waypoint: " + e.getMessage());
+            }
+
+            shapeRenderer.end();
+        } catch (Exception e) {
+            System.err.println("Error rendering waypoints: " + e.getMessage());
+            try {
+                shapeRenderer.end();
+            } catch (Exception ignored) {
+                // Ignore errors when ending renderer
+            }
         }
-
-        shapeRenderer.begin(ShapeType.Filled);
-
-        Position startPos = waypoints.get(0);
-        shapeRenderer.setColor(0, 1, 0, 1);
-        shapeRenderer.circle(startPos.getX(), startPos.getY(), 10);
-
-        if (waypoints.size() > 1) {
-            Position endPos = waypoints.get(waypoints.size() - 1);
-            shapeRenderer.setColor(1, 0, 0, 1);
-            shapeRenderer.circle(endPos.getX(), endPos.getY(), 10);
-        }
-
-        shapeRenderer.end();
     }
 
     private void renderEnemies() {
@@ -517,99 +734,161 @@ public class TowerDefenseGame extends ApplicationAdapter {
     }
 
     private void renderTowerPreview() {
-        if (selectedTowerType == null || gameState != GameState.PLAYING) {
-            return;
+        try {
+            if (selectedTowerType == null || gameState != GameState.PLAYING) {
+                return;
+            }
+
+            if (budgetManager == null || !budgetManager.canAfford(selectedTowerType.getCost())) {
+                return;
+            }
+
+            // Get cursor position in world coordinates
+            try {
+                int screenX = Gdx.input.getX();
+                int screenY = Gdx.input.getY();
+                Vector2 worldCoords = new Vector2(screenX, screenY);
+                viewport.unproject(worldCoords);
+
+                float worldX = worldCoords.x;
+                float worldY = worldCoords.y;
+
+                // Check if placement is valid
+                boolean isValidPlacement = isValidTowerPlacement(worldX, worldY, selectedTowerType.getRange());
+
+                // Get tower color
+                Color towerColor = getTowerColor(selectedTowerType.getId());
+
+                // Render range circle preview
+                try {
+                    shapeRenderer.begin(ShapeType.Line);
+                    float rangeOpacity = 0.5f;
+                    if (isValidPlacement) {
+                        shapeRenderer.setColor(towerColor.r, towerColor.g, towerColor.b, rangeOpacity);
+                    } else {
+                        shapeRenderer.setColor(1f, 0f, 0f, rangeOpacity);
+                    }
+                    shapeRenderer.circle(worldX, worldY, selectedTowerType.getRange());
+                    shapeRenderer.end();
+                } catch (Exception e) {
+                    System.err.println("Error rendering range preview: " + e.getMessage());
+                    try {
+                        shapeRenderer.end();
+                    } catch (Exception ignored) {
+                        // Ignore errors when ending renderer
+                    }
+                }
+
+                // Render tower preview
+                try {
+                    shapeRenderer.begin(ShapeType.Filled);
+                    float previewOpacity = 0.6f;
+                    if (isValidPlacement) {
+                        shapeRenderer.setColor(towerColor.r, towerColor.g, towerColor.b, previewOpacity);
+                    } else {
+                        shapeRenderer.setColor(1f, 0f, 0f, previewOpacity);
+                    }
+                    shapeRenderer.rect(worldX - 10, worldY - 10, 20, 20);
+                    shapeRenderer.end();
+                } catch (Exception e) {
+                    System.err.println("Error rendering tower preview: " + e.getMessage());
+                    try {
+                        shapeRenderer.end();
+                    } catch (Exception ignored) {
+                        // Ignore errors when ending renderer
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error getting cursor position: " + e.getMessage());
+            }
+        } catch (Exception e) {
+            System.err.println("Error rendering tower preview: " + e.getMessage());
         }
-
-        if (!budgetManager.canAfford(selectedTowerType.getCost())) {
-            return;
-        }
-
-        // Get cursor position in world coordinates
-        int screenX = Gdx.input.getX();
-        int screenY = Gdx.input.getY();
-        Vector2 worldCoords = new Vector2(screenX, screenY);
-        viewport.unproject(worldCoords);
-
-        float worldX = worldCoords.x;
-        float worldY = worldCoords.y;
-
-        // Check if placement is valid
-        boolean isValidPlacement = isValidTowerPlacement(worldX, worldY, selectedTowerType.getRange());
-
-        // Get tower color
-        Color towerColor = getTowerColor(selectedTowerType.getId());
-
-        // Render range circle preview
-        shapeRenderer.begin(ShapeType.Line);
-        float rangeOpacity = 0.5f; // Preview opacity
-        if (isValidPlacement) {
-            shapeRenderer.setColor(towerColor.r, towerColor.g, towerColor.b, rangeOpacity);
-        } else {
-            shapeRenderer.setColor(1f, 0f, 0f, rangeOpacity); // Red when invalid
-        }
-        shapeRenderer.circle(worldX, worldY, selectedTowerType.getRange());
-        shapeRenderer.end();
-
-        // Render tower preview
-        shapeRenderer.begin(ShapeType.Filled);
-        float previewOpacity = 0.6f; // Lower opacity for preview
-        if (isValidPlacement) {
-            shapeRenderer.setColor(towerColor.r, towerColor.g, towerColor.b, previewOpacity);
-        } else {
-            shapeRenderer.setColor(1f, 0f, 0f, previewOpacity); // Red when invalid
-        }
-        shapeRenderer.rect(worldX - 10, worldY - 10, 20, 20);
-        shapeRenderer.end();
     }
 
     private void renderUI() {
-        batch.setProjectionMatrix(camera.combined);
-        batch.begin();
+        try {
+            batch.setProjectionMatrix(camera.combined);
+            batch.begin();
 
-        font.draw(batch, "Budget: " + budgetManager.getBudget(), 10, WORLD_HEIGHT - 10);
-        font.draw(batch, "Lives: " + lives, 10, WORLD_HEIGHT - 50);
+            try {
+                font.draw(batch, "Budget: " + budgetManager.getBudget(), 10, WORLD_HEIGHT - 10);
+                font.draw(batch, "Lives: " + lives, 10, WORLD_HEIGHT - 50);
+            } catch (Exception e) {
+                System.err.println("Error rendering budget/lives: " + e.getMessage());
+            }
 
-        if (gameConfig.getTowerTypes() != null) {
-            float startY = WORLD_HEIGHT - 100;
-            float spacing = 20f;
+            if (gameConfig != null && gameConfig.getTowerTypes() != null) {
+                try {
+                    float startY = WORLD_HEIGHT - 100;
+                    float spacing = 20f;
 
-            for (int i = 0; i < gameConfig.getTowerTypes().size(); i++) {
-                GameConfig.TowerTypeConfig towerType = gameConfig.getTowerTypes().get(i);
-                String towerText = (i + 1) + ". " + towerType.getName() + " - $" + towerType.getCost();
+                    for (int i = 0; i < gameConfig.getTowerTypes().size(); i++) {
+                        try {
+                            GameConfig.TowerTypeConfig towerType = gameConfig.getTowerTypes().get(i);
+                            if (towerType == null) {
+                                continue;
+                            }
 
-                if (selectedTowerType == towerType) {
-                    font.setColor(1f, 1f, 0f, 1f);
-                } else {
+                            String towerText = (i + 1) + ". " + towerType.getName() + " - $" + towerType.getCost();
+
+                            if (selectedTowerType == towerType) {
+                                font.setColor(1f, 1f, 0f, 1f);
+                            } else {
+                                font.setColor(1f, 1f, 1f, 1f);
+                            }
+
+                            font.draw(batch, towerText, 10, startY - (i * spacing));
+                        } catch (IndexOutOfBoundsException e) {
+                            System.err.println("Index out of bounds when rendering tower UI: " + e.getMessage());
+                            break;
+                        } catch (Exception e) {
+                            System.err.println("Error rendering tower " + i + ": " + e.getMessage());
+                        }
+                    }
                     font.setColor(1f, 1f, 1f, 1f);
+                } catch (Exception e) {
+                    System.err.println("Error rendering tower selection UI: " + e.getMessage());
                 }
-
-                font.draw(batch, towerText, 10, startY - (i * spacing));
             }
-            font.setColor(1f, 1f, 1f, 1f);
 
-        }
+            try {
+                if (waveManager != null) {
+                    int currentWave = waveManager.getCurrentWaveNumber();
+                    int totalWaves = waveManager.getTotalWaves();
+                    if (waveManager.areAllWavesComplete()) {
+                        font.draw(batch, "Wave: " + currentWave + "/" + totalWaves + " (Complete)", 10,
+                                WORLD_HEIGHT - 30);
+                    } else {
+                        font.draw(batch, "Wave: " + currentWave + "/" + totalWaves, 10, WORLD_HEIGHT - 30);
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error rendering wave info: " + e.getMessage());
+            }
 
-        if (waveManager != null) {
-            int currentWave = waveManager.getCurrentWaveNumber();
-            int totalWaves = waveManager.getTotalWaves();
-            if (waveManager.areAllWavesComplete()) {
-                font.draw(batch, "Wave: " + currentWave + "/" + totalWaves + " (Complete)", 10, WORLD_HEIGHT - 30);
-            } else {
-                font.draw(batch, "Wave: " + currentWave + "/" + totalWaves, 10, WORLD_HEIGHT - 30);
+            try {
+                if (gameState == GameState.WON) {
+                    String winText = "YOU WIN!";
+                    float textWidth = font.getData().getGlyph('A').width * winText.length();
+                    font.draw(batch, winText, WORLD_WIDTH / 2 - textWidth / 2, WORLD_HEIGHT / 2);
+                } else if (gameState == GameState.LOST) {
+                    String loseText = "GAME OVER!";
+                    float textWidth = font.getData().getGlyph('A').width * loseText.length();
+                    font.draw(batch, loseText, WORLD_WIDTH / 2 - textWidth / 2, WORLD_HEIGHT / 2);
+                }
+            } catch (Exception e) {
+                System.err.println("Error rendering game state message: " + e.getMessage());
+            }
+
+            batch.end();
+        } catch (Exception e) {
+            System.err.println("Error rendering UI: " + e.getMessage());
+            try {
+                batch.end();
+            } catch (Exception ignored) {
+                // Ignore errors when ending batch
             }
         }
-
-        if (gameState == GameState.WON) {
-            String winText = "YOU WIN!";
-            float textWidth = font.getData().getGlyph('A').width * winText.length();
-            font.draw(batch, winText, WORLD_WIDTH / 2 - textWidth / 2, WORLD_HEIGHT / 2);
-        } else if (gameState == GameState.LOST) {
-            String loseText = "GAME OVER!";
-            float textWidth = font.getData().getGlyph('A').width * loseText.length();
-            font.draw(batch, loseText, WORLD_WIDTH / 2 - textWidth / 2, WORLD_HEIGHT / 2);
-        }
-
-        batch.end();
     }
 }
