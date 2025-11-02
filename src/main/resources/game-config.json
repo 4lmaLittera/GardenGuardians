@@ -1,0 +1,75 @@
+{
+  "initialBudget": 100,
+  "initialLives": 10,
+  "path": {
+    "waypoints": [
+      { "x": 1280, "y": 360 },
+      { "x": 640, "y": 360 },
+      { "x": 250, "y": 500 },
+      { "x": 0, "y": 360 }
+    ]
+  },
+  "initialEnemies": [],
+  "waves": [
+    {
+      "waveNumber": 1,
+      "startTime": 0.0,
+      "enemies": [
+        { "health": 100, "speed": 100.0, "spawnDelay": 0.0, "reward": 10 },
+        { "health": 100, "speed": 100.0, "spawnDelay": 1.0, "reward": 10 },
+        { "health": 100, "speed": 100.0, "spawnDelay": 2.0, "reward": 10 }
+      ]
+    },
+    {
+      "waveNumber": 2,
+      "startTime": 20.0,
+      "enemies": [
+        { "health": 150, "speed": 120.0, "spawnDelay": 0.0, "reward": 15 },
+        { "health": 150, "speed": 120.0, "spawnDelay": 0.5, "reward": 15 },
+        { "health": 150, "speed": 120.0, "spawnDelay": 1.0, "reward": 15 },
+        { "health": 150, "speed": 120.0, "spawnDelay": 1.5, "reward": 15 }
+      ]
+    },
+    {
+      "waveNumber": 3,
+      "startTime": 30.0,
+      "enemies": [
+        { "health": 200, "speed": 150.0, "spawnDelay": 0.0, "reward": 20 },
+        { "health": 200, "speed": 150.0, "spawnDelay": 0.3, "reward": 20 },
+        { "health": 200, "speed": 150.0, "spawnDelay": 0.6, "reward": 20 },
+        { "health": 200, "speed": 150.0, "spawnDelay": 0.9, "reward": 20 },
+        { "health": 200, "speed": 150.0, "spawnDelay": 1.2, "reward": 20 }
+      ]
+    }
+  ],
+  "towerTypes": [
+    {
+      "name": "Basic Bitch",
+      "cost": 30,
+      "range": 100,
+      "damage": 25,
+      "attackCooldown": 0.5,
+      "projectileSpeed": 500.0
+    },
+    {
+      "name": "Gorlock The Destroyer",
+      "cost": 50,
+      "range": 50,
+      "damage": 80,
+      "attackCooldown": 1.5,
+      "projectileSpeed": 300.0
+    }
+  ],
+  "worldWidth": 1280,
+  "worldHeight": 720,
+  "projectileSpeed": 300.0,
+  "moneyCoinSpeed": 500.0,
+  "towerPlacement": {
+    "minTowerSpacing": 40,
+    "minDistanceFromPath": 30
+  },
+  "visual": {
+    "backgroundColor": { "r": 0.1, "g": 0.15, "b": 0.2, "a": 1.0 },
+    "rangeCircleOpacity": 0.3
+  }
+}

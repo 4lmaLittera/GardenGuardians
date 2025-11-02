@@ -16,4 +16,10 @@ public class Position {
     public float getY() {
         return y;
     }
+
+    public static float distance(Position a, Position b) {
+        float dx = b.getX() - a.getX();
+        float dy = b.getY() - a.getY();
+        return (float) Math.sqrt(dx * dx + dy * dy);
+    }
 }

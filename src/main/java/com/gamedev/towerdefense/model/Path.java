@@ -15,32 +15,26 @@ public class Path {
         this.positions = Arrays.asList(positions);
     }
 
-    public List<Position> getWaypoints(){
+    public List<Position> getWaypoints() {
         return new ArrayList<>(positions);
     }
 
-    public Position getPoint(int index){
+    public Position getPoint(int index) {
         return positions.get(index);
     }
 
-    private float distance(Position a, Position b) {
-        float dx = b.getX() - a.getX();
-        float dy = b.getY() - a.getY();
-        return (float) Math.sqrt(dx * dx + dy * dy);
-    }
-
-    public float getPathLength(){
+    public float getPathLength() {
         if (positions.size() < 2) {
             return 0f;
         }
         float length = 0;
         for (int i = 0; i < positions.size() - 1; i++) {
-            length += distance(positions.get(i), positions.get(i + 1));
+            length += Position.distance(positions.get(i), positions.get(i + 1));
         }
         return length;
     }
 
-    public int getWaypointCount(){
+    public int getWaypointCount() {
         return this.positions.size();
     }
 

@@ -6,14 +6,20 @@ public class Enemy {
     private float speed;
     private Path path;
     private int currentWaypointIndex;
+    private int reward;
 
-    public Enemy(Path path, int health, float speed, int currentWaypointIndex) {
+    public Enemy(Path path, int health, float speed, int currentWaypointIndex, int reward) {
         this.path = path;
         this.health = health;
         this.speed = speed;
         this.currentWaypointIndex = currentWaypointIndex;
+        this.reward = reward;
         Position firstWaypoint = path.getPoint(0);
         this.position = new Position(firstWaypoint.getX(), firstWaypoint.getY());
+    }
+
+    public int getReward() {
+        return reward;
     }
 
     public Position getPosition() {
@@ -44,22 +50,22 @@ public class Enemy {
         if (hasReachedEnd()) {
             return;
         }
-        
+
         while (currentWaypointIndex < path.getWaypointCount()) {
             Position targetWaypoint = path.getPoint(currentWaypointIndex);
             float dx = targetWaypoint.getX() - position.getX();
             float dy = targetWaypoint.getY() - position.getY();
             float distanceToTarget = (float) Math.sqrt(dx * dx + dy * dy);
-            
+
             // If already at this waypoint, advance to next
             if (distanceToTarget < 0.01f) {
                 currentWaypointIndex++;
                 continue;
             }
-            
+
             // Move toward target
             float moveDistance = speed * deltaTime;
-            
+
             if (moveDistance >= distanceToTarget) {
                 position = new Position(targetWaypoint.getX(), targetWaypoint.getY());
                 currentWaypointIndex++;

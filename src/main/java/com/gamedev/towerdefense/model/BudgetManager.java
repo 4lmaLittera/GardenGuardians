@@ -21,7 +21,7 @@ public class BudgetManager {
 
     public void earn(int amount){
         this.budget += amount;
-    }
+    } 
 
     public boolean canAfford(int amount){
         if (this.budget - amount >=0) {
