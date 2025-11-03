@@ -21,6 +21,7 @@ public class GameConfig {
     private float moneyCoinSpeed;
     private TowerPlacementConfig towerPlacement;
     private VisualConfig visual;
+    private UpgradeConfig upgrades;
 
     public static GameConfig load(String filename) {
         try {
@@ -98,6 +99,10 @@ public class GameConfig {
 
     public VisualConfig getVisual() {
         return visual;
+    }
+
+    public UpgradeConfig getUpgrades() {
+        return upgrades;
     }
 
     public List<Position> getPathWaypoints() {
@@ -284,6 +289,39 @@ public class GameConfig {
 
         public float getA() {
             return a;
+        }
+    }
+
+    public static class UpgradeConfig {
+        private int damageCost;
+        private int rangeCost;
+        private int cooldownCost;
+        private int damageAmount;
+        private int rangeAmount;
+        private float cooldownAmount;
+
+        public int getDamageCost() {
+            return damageCost;
+        }
+
+        public int getRangeCost() {
+            return rangeCost;
+        }
+
+        public int getCooldownCost() {
+            return cooldownCost;
+        }
+
+        public int getDamageAmount() {
+            return damageAmount;
+        }
+
+        public int getRangeAmount() {
+            return rangeAmount;
+        }
+
+        public float getCooldownAmount() {
+            return cooldownAmount;
         }
     }
 }

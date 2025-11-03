@@ -12,10 +12,12 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -48,6 +50,11 @@ public class TowerDefenseGame extends ApplicationAdapter {
     private Texture backgroundTexture;
     private Texture beetlTexture;
     private AnimationManager enemyAnimation;
+    private Texture coinTexture;
+
+    private Rectangle damageTextBounds;
+    private Rectangle rangeTextBounds;
+    private Rectangle cooldownTextBounds;
 
     // Game configuration and managers
     private GameConfig gameConfig;
@@ -67,6 +74,7 @@ public class TowerDefenseGame extends ApplicationAdapter {
 
     // Tower selection
     private GameConfig.TowerTypeConfig selectedTowerType;
+    private Tower selectedTower;
 
     // Lifecycle methods
     @Override
@@ -105,6 +113,14 @@ public class TowerDefenseGame extends ApplicationAdapter {
                     System.err.println("Failed to create enemy animation: " + e.getMessage());
                     enemyAnimation = null;
                 }
+            }
+
+            // Load coin texture
+            try {
+                coinTexture = new Texture(Gdx.files.internal("assets/images/coin.png"));
+            } catch (Exception e) {
+                System.err.println("Failed to load coin texture: " + e.getMessage());
+                coinTexture = null;
             }
 
             camera = new OrthographicCamera();
@@ -194,6 +210,10 @@ public class TowerDefenseGame extends ApplicationAdapter {
             e.printStackTrace();
             throw e;
         }
+
+        damageTextBounds = new Rectangle();
+        rangeTextBounds = new Rectangle();
+        cooldownTextBounds = new Rectangle();
     }
 
     @Override
@@ -224,7 +244,7 @@ public class TowerDefenseGame extends ApplicationAdapter {
 
         float deltaTime = Gdx.graphics.getDeltaTime();
 
-        if (gameState == GameState.PLAYING) {
+        if (gameState == GameState.PLAYING || gameState == GameState.PAUSED) {
             updateGame(deltaTime);
         }
 
@@ -239,6 +259,7 @@ public class TowerDefenseGame extends ApplicationAdapter {
         renderTowerPreview();
 
         renderUI();
+        renderTowerStatsPanel();
     }
 
     @Override
@@ -291,6 +312,11 @@ public class TowerDefenseGame extends ApplicationAdapter {
 
     // Update methods
     private void updateGame(float deltaTime) {
+        if (gameState == GameState.PAUSED) {
+            handleInput();
+            checkGameState();
+            return;
+        }
         if (waveManager != null) {
             waveManager.update(deltaTime, enemies, path);
         }
@@ -364,10 +390,20 @@ public class TowerDefenseGame extends ApplicationAdapter {
         if (waveManager != null && waveManager.areAllWavesComplete() && enemies.isEmpty()) {
             gameState = GameState.WON;
         }
+
     }
 
     // Input handling
     private void handleInput() {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            if (gameState == GameState.PAUSED) {
+                gameState = GameState.PLAYING;
+                return;
+            }
+            gameState = GameState.PAUSED;
+            return;
+        }
+
         int towerKey = getTowerKeyPressed();
 
         switch (towerKey) {
@@ -385,6 +421,66 @@ public class TowerDefenseGame extends ApplicationAdapter {
         }
 
         handleTowerPlacement();
+        Tower clickedTower = handleTowerClick();
+        if (clickedTower != null) {
+            selectedTower = clickedTower;
+        } else if (handleTowerDescriptionClick()) {
+            // Click was handled by description panel, don't deselect
+        } else if (Gdx.input.justTouched()) {
+            selectedTower = null;
+        }
+    }
+
+    private boolean handleTowerDescriptionClick() {
+        if (!Gdx.input.justTouched()) {
+            return false;
+        }
+        if (selectedTower == null) {
+            return false;
+        }
+        
+        int screenX = Gdx.input.getX();
+        int screenY = Gdx.input.getY();
+        Vector2 worldCoords = new Vector2(screenX, screenY);
+        viewport.unproject(worldCoords);
+        
+        // Check if click is within any of the text bounds
+        GameConfig.UpgradeConfig upgrades = gameConfig != null ? gameConfig.getUpgrades() : null;
+        if (upgrades == null) {
+            return false;
+        }
+
+        if (damageTextBounds.contains(worldCoords.x, worldCoords.y)) {
+            int damageCost = upgrades.getDamageCost();
+            int damageAmount = upgrades.getDamageAmount();
+            if (budgetManager.canAfford(damageCost)) {
+                budgetManager.spend(damageCost);
+                selectedTower.increaseDamage(damageAmount);
+            }
+            // Return true to consume the click and prevent deselection
+            return true;
+        }
+        if (rangeTextBounds.contains(worldCoords.x, worldCoords.y)) {
+            int rangeCost = upgrades.getRangeCost();
+            int rangeAmount = upgrades.getRangeAmount();
+            if (budgetManager.canAfford(rangeCost)) {
+                budgetManager.spend(rangeCost);
+                selectedTower.increaseRange(rangeAmount);
+            }
+            // Return true to consume the click and prevent deselection
+            return true;
+        }
+        if (cooldownTextBounds.contains(worldCoords.x, worldCoords.y)) {
+            int cooldownCost = upgrades.getCooldownCost();
+            float cooldownAmount = upgrades.getCooldownAmount();
+            if (budgetManager.canAfford(cooldownCost)) {
+                budgetManager.spend(cooldownCost);
+                selectedTower.decreaseAttackCooldown(cooldownAmount);
+            }
+            // Return true to consume the click and prevent deselection
+            return true;
+        }
+        return false;
     }
 
     private int getTowerKeyPressed() {
@@ -422,6 +518,32 @@ public class TowerDefenseGame extends ApplicationAdapter {
         } catch (Exception e) {
             System.err.println("Error toggling tower selection: " + e.getMessage());
         }
+    }
+
+    private Tower handleTowerClick() {
+        if (!Gdx.input.justTouched()) {
+            return null;
+        }
+        if (selectedTowerType != null) {
+            return null;
+        }
+
+        int screenX = Gdx.input.getX();
+        int screenY = Gdx.input.getY();
+
+        Vector2 worldCoords = new Vector2(screenX, screenY);
+        viewport.unproject(worldCoords);
+
+        for (Tower tower : towers) {
+            if (worldCoords.x + 20 > tower.getPosition().getX()
+                    && worldCoords.x - 20 < tower.getPosition().getX()) {
+                if (worldCoords.y + 20 > tower.getPosition().getY()
+                        && worldCoords.y - 20 < tower.getPosition().getY()) {
+                    return tower;
+                }
+            }
+        }
+        return null;
     }
 
     private void handleTowerPlacement() {
@@ -743,13 +865,13 @@ public class TowerDefenseGame extends ApplicationAdapter {
     }
 
     private void renderMoneyCoins() {
-        shapeRenderer.begin(ShapeType.Filled);
-        shapeRenderer.setColor(1f, 0.84f, 0f, 1f);
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
         for (MoneyCoin coin : moneyCoins) {
             Position coinPos = coin.getPosition();
-            shapeRenderer.circle(coinPos.getX(), coinPos.getY(), 8);
+            batch.draw(coinTexture, coinPos.getX() - 16, coinPos.getY() - 16, 32, 32);
         }
-        shapeRenderer.end();
+        batch.end();
     }
 
     private void renderTowerPreview() {
@@ -830,6 +952,9 @@ public class TowerDefenseGame extends ApplicationAdapter {
             batch.setProjectionMatrix(camera.combined);
             batch.begin();
 
+            // Set font color to white for UI elements
+            font.setColor(1f, 1f, 1f, 1f);
+
             try {
                 font.draw(batch, "Budget: " + budgetManager.getBudget(), 10, WORLD_HEIGHT - 10);
                 font.draw(batch, "Lives: " + lives, 10, WORLD_HEIGHT - 50);
@@ -908,6 +1033,127 @@ public class TowerDefenseGame extends ApplicationAdapter {
             } catch (Exception ignored) {
                 // Ignore errors when ending batch
             }
+        }
+    }
+
+    private void renderTowerStatsPanel() {
+        if (selectedTower == null) {
+            return; // Don't render if no tower is selected
+        }
+
+        try {
+            float panelX = WORLD_WIDTH - 250; // Right side of screen
+            float panelY = 100; // Near bottom
+            float panelWidth = 230;
+            float panelHeight = 200;
+
+            // Draw panel background
+            shapeRenderer.setProjectionMatrix(camera.combined);
+            shapeRenderer.begin(ShapeType.Filled);
+            shapeRenderer.setColor(0.2f, 0.2f, 0.3f, 0.9f); // Semi-transparent dark blue
+            shapeRenderer.rect(panelX, panelY, panelWidth, panelHeight);
+            shapeRenderer.end();
+
+            // Draw panel border
+            shapeRenderer.begin(ShapeType.Line);
+            shapeRenderer.setColor(1f, 1f, 1f, 1f); // White border
+            shapeRenderer.rect(panelX, panelY, panelWidth, panelHeight);
+            shapeRenderer.end();
+
+            // Draw text
+            batch.setProjectionMatrix(camera.combined);
+            batch.begin();
+
+            float startY = panelY + panelHeight - 20;
+            float lineSpacing = 25f;
+
+            font.setColor(1f, 1f, 0f, 1f); // Yellow title
+            font.draw(batch, "Tower Stats", panelX + 10, startY);
+
+            font.setColor(1f, 1f, 1f, 1f); // White text
+
+            startY -= lineSpacing;
+
+            // Get upgrade costs
+            GameConfig.UpgradeConfig upgrades = gameConfig != null ? gameConfig.getUpgrades() : null;
+            int damageCost = upgrades != null ? upgrades.getDamageCost() : 0;
+            int rangeCost = upgrades != null ? upgrades.getRangeCost() : 0;
+            int cooldownCost = upgrades != null ? upgrades.getCooldownCost() : 0;
+
+            // Render damage with cost
+            String damageText = "Damage: " + selectedTower.getDamage();
+            boolean canAffordDamage = budgetManager.canAfford(damageCost);
+            String damageCostText = " [$" + damageCost + "]" + (canAffordDamage ? " +" : "");
+            font.setColor(1f, 1f, 1f, 1f); // White for stat
+            GlyphLayout damageLayout = new GlyphLayout(font, damageText);
+            float damageX = panelX + 10;
+            font.draw(batch, damageText, damageX, startY);
+            
+            // Draw cost with affordability color
+            font.setColor(canAffordDamage ? 0.4f : 1f, canAffordDamage ? 1f : 0.4f, 0.4f, 1f); // Green if affordable, red if not
+            GlyphLayout damageCostLayout = new GlyphLayout(font, damageCostText);
+            font.draw(batch, damageCostText, damageX + damageLayout.width, startY);
+            
+            // Update bounds to include cost
+            damageTextBounds.width = damageLayout.width + damageCostLayout.width;
+            damageTextBounds.height = Math.max(damageLayout.height, damageCostLayout.height);
+            damageTextBounds.x = damageX;
+            damageTextBounds.y = startY - damageTextBounds.height;
+
+            startY -= lineSpacing;
+            
+            // Render range with cost
+            String rangeText = "Range: " + selectedTower.getRange();
+            boolean canAffordRange = budgetManager.canAfford(rangeCost);
+            String rangeCostText = " [$" + rangeCost + "]" + (canAffordRange ? " +" : "");
+            font.setColor(1f, 1f, 1f, 1f); // White for stat
+            GlyphLayout rangeLayout = new GlyphLayout(font, rangeText);
+            float rangeX = panelX + 10;
+            font.draw(batch, rangeText, rangeX, startY);
+            
+            // Draw cost with affordability color
+            font.setColor(canAffordRange ? 0.4f : 1f, canAffordRange ? 1f : 0.4f, 0.4f, 1f); // Green if affordable, red if not
+            GlyphLayout rangeCostLayout = new GlyphLayout(font, rangeCostText);
+            font.draw(batch, rangeCostText, rangeX + rangeLayout.width, startY);
+            
+            // Update bounds to include cost
+            rangeTextBounds.width = rangeLayout.width + rangeCostLayout.width;
+            rangeTextBounds.height = Math.max(rangeLayout.height, rangeCostLayout.height);
+            rangeTextBounds.x = rangeX;
+            rangeTextBounds.y = startY - rangeTextBounds.height;
+
+            startY -= lineSpacing;
+            
+            // Render cooldown with cost
+            String cooldownText = "Cooldown: " + String.format("%.2f", selectedTower.getBaseAttackCooldown()) + "s";
+            boolean canAffordCooldown = budgetManager.canAfford(cooldownCost);
+            String cooldownCostText = " [$" + cooldownCost + "]" + (canAffordCooldown ? " +" : "");
+            font.setColor(1f, 1f, 1f, 1f); // White for stat
+            GlyphLayout cooldownLayout = new GlyphLayout(font, cooldownText);
+            float cooldownX = panelX + 10;
+            font.draw(batch, cooldownText, cooldownX, startY);
+            
+            // Draw cost with affordability color
+            font.setColor(canAffordCooldown ? 0.4f : 1f, canAffordCooldown ? 1f : 0.4f, 0.4f, 1f); // Green if affordable, red if not
+            GlyphLayout cooldownCostLayout = new GlyphLayout(font, cooldownCostText);
+            font.draw(batch, cooldownCostText, cooldownX + cooldownLayout.width, startY);
+            
+            // Update bounds to include cost
+            cooldownTextBounds.width = cooldownLayout.width + cooldownCostLayout.width;
+            cooldownTextBounds.height = Math.max(cooldownLayout.height, cooldownCostLayout.height);
+            cooldownTextBounds.x = cooldownX;
+            cooldownTextBounds.y = startY - cooldownTextBounds.height;
+
+            startY -= lineSpacing;
+            font.setColor(1f, 1f, 1f, 1f); // Reset to white
+            font.draw(batch, "ID: " + selectedTower.getTowerId(), panelX + 10, startY);
+
+            // Reset font color to white before ending batch
+            font.setColor(1f, 1f, 1f, 1f);
+            batch.end();
+
+        } catch (Exception e) {
+            System.err.println("Error rendering tower stats panel: " + e.getMessage());
         }
     }
 }

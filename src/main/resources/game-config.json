@@ -142,5 +142,13 @@
   "visual": {
     "backgroundColor": { "r": 0.1, "g": 0.15, "b": 0.2, "a": 1.0 },
     "rangeCircleOpacity": 0.3
+  },
+  "upgrades": {
+    "damageCost": 50,
+    "rangeCost": 75,
+    "cooldownCost": 100,
+    "damageAmount": 1,
+    "rangeAmount": 1,
+    "cooldownAmount": 0.1
   }
 }
