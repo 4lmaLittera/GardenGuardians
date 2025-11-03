@@ -102,7 +102,7 @@
   "towerTypes": [
     {
       "id": 1,
-      "name": "The Girl",
+      "name": "Pest Killer",
       "cost": 30,
       "range": 100,
       "damage": 25,
@@ -112,7 +112,7 @@
     },
     {
       "id": 2,
-      "name": "The Best Friend",
+      "name": "Ant Bomber",
       "cost": 65,
       "range": 60,
       "damage": 200,
@@ -122,7 +122,7 @@
     },
     {
       "id": 3,
-      "name": "The Cousing",
+      "name": "Beetle Sprayer",
       "cost": 40,
       "range": 150,
       "damage": 10,
