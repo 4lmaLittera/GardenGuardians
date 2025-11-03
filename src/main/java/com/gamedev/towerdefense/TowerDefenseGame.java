@@ -76,22 +76,19 @@ public class TowerDefenseGame extends ApplicationAdapter {
     private GameConfig.TowerTypeConfig selectedTowerType;
     private Tower selectedTower;
 
-    // Lifecycle methods
     @Override
     public void create() {
         try {
             batch = new SpriteBatch();
             shapeRenderer = new ShapeRenderer();
 
-            // Load background texture
             try {
                 backgroundTexture = new Texture(Gdx.files.internal("assets/images/grass_template2.jpg"));
             } catch (Exception e) {
                 System.err.println("Failed to load background texture: " + e.getMessage());
-                backgroundTexture = null; // Continue without background
+                backgroundTexture = null;
             }
 
-            // Load enemy texture
             try {
                 beetlTexture = new Texture(Gdx.files.internal("assets/images/BeetleMove.png"));
             } catch (Exception e) {
@@ -99,7 +96,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
                 beetlTexture = null;
             }
 
-            // Create enemy animation
             if (beetlTexture != null) {
                 try {
                     int frameWidth = 32;
@@ -115,7 +111,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
                 }
             }
 
-            // Load coin texture
             try {
                 coinTexture = new Texture(Gdx.files.internal("assets/images/coin.png"));
             } catch (Exception e) {
@@ -130,7 +125,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
             font = new BitmapFont();
             font.getData().setScale(1f, 1f);
 
-            // Load game configuration
             try {
                 gameConfig = GameConfig.load("game-config.json");
                 if (gameConfig == null) {
@@ -142,7 +136,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
                 throw new RuntimeException("Cannot start game without configuration", e);
             }
 
-            // Setup camera with config values
             try {
                 if (gameConfig.getWorldWidth() > 0 && gameConfig.getWorldHeight() > 0) {
                     camera.setToOrtho(false, gameConfig.getWorldWidth(), gameConfig.getWorldHeight());
@@ -166,7 +159,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
                 throw new RuntimeException("Cannot start game without path", e);
             }
 
-            // Setup wave manager
             try {
                 if (gameConfig.getWaves() != null && !gameConfig.getWaves().isEmpty()) {
                     waveManager = new WaveManager(gameConfig.getWaves());
@@ -178,7 +170,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
                 waveManager = new WaveManager(null);
             }
 
-            // Setup initial enemies
             try {
                 if (gameConfig.getInitialEnemies() != null) {
                     for (GameConfig.EnemyConfig enemyConfig : gameConfig.getInitialEnemies()) {
@@ -193,7 +184,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
                 System.err.println("Failed to setup initial enemies: " + e.getMessage());
             }
 
-            // Setup tower selection
             try {
                 if (gameConfig.getTowerTypes() != null && !gameConfig.getTowerTypes().isEmpty()) {
                     selectedTowerType = gameConfig.getTowerTypes().get(0);
@@ -228,7 +218,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
 
         camera.update();
 
-        // Draw background image
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
         if (backgroundTexture != null) {
@@ -310,7 +299,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
         }
     }
 
-    // Update methods
     private void updateGame(float deltaTime) {
         if (gameState == GameState.PAUSED) {
             handleInput();
@@ -393,7 +381,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
 
     }
 
-    // Input handling
     private void handleInput() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             if (gameState == GameState.PAUSED) {
@@ -425,7 +412,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
         if (clickedTower != null) {
             selectedTower = clickedTower;
         } else if (handleTowerDescriptionClick()) {
-            // Click was handled by description panel, don't deselect
         } else if (Gdx.input.justTouched()) {
             selectedTower = null;
         }
@@ -444,7 +430,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
         Vector2 worldCoords = new Vector2(screenX, screenY);
         viewport.unproject(worldCoords);
         
-        // Check if click is within any of the text bounds
         GameConfig.UpgradeConfig upgrades = gameConfig != null ? gameConfig.getUpgrades() : null;
         if (upgrades == null) {
             return false;
@@ -457,7 +442,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
                 budgetManager.spend(damageCost);
                 selectedTower.increaseDamage(damageAmount);
             }
-            // Return true to consume the click and prevent deselection
             return true;
         }
         if (rangeTextBounds.contains(worldCoords.x, worldCoords.y)) {
@@ -467,7 +451,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
                 budgetManager.spend(rangeCost);
                 selectedTower.increaseRange(rangeAmount);
             }
-            // Return true to consume the click and prevent deselection
             return true;
         }
         if (cooldownTextBounds.contains(worldCoords.x, worldCoords.y)) {
@@ -477,7 +460,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
                 budgetManager.spend(cooldownCost);
                 selectedTower.decreaseAttackCooldown(cooldownAmount);
             }
-            // Return true to consume the click and prevent deselection
             return true;
         }
         return false;
@@ -587,7 +569,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
         selectedTowerType = null;
     }
 
-    // Utility methods
     private boolean isValidTowerPlacement(float x, float y, int newTowerRange) {
         Position pos = new Position(x, y);
 
@@ -600,17 +581,14 @@ public class TowerDefenseGame extends ApplicationAdapter {
         for (Tower tower : towers) {
             float distance = Position.distance(pos, tower.getPosition());
 
-            // Check minimum spacing between towers
             if (distance < minSpacing) {
                 return false;
             }
 
-            // Check if new tower position is within existing tower's range
             if (distance < tower.getRange()) {
                 return false;
             }
 
-            // Check if existing tower is within new tower's range
             if (distance < newTowerRange) {
                 return false;
             }
@@ -639,7 +617,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
             return false;
         }
 
-        // Check bounds (optional - keep towers on screen)
         if (x < 0 || x > WORLD_WIDTH || y < 0 || y > WORLD_HEIGHT) {
             return false;
         }
@@ -693,10 +670,9 @@ public class TowerDefenseGame extends ApplicationAdapter {
 
     private Color getTowerColor(int towerId) {
         if (gameConfig.getTowerTypes() == null) {
-            return new Color(0.8f, 0.8f, 0.2f, 1f); // Default yellow
+            return new Color(0.8f, 0.8f, 0.2f, 1f);
         }
 
-        // Find tower type by ID in config
         for (GameConfig.TowerTypeConfig towerType : gameConfig.getTowerTypes()) {
             if (towerId == towerType.getId()) {
                 GameConfig.ColorConfig colorConfig = towerType.getColor();
@@ -706,11 +682,9 @@ public class TowerDefenseGame extends ApplicationAdapter {
             }
         }
 
-        // Default color if not found or color not configured
-        return new Color(0.8f, 0.8f, 0.2f, 1f); // Default yellow
+        return new Color(0.8f, 0.8f, 0.2f, 1f);
     }
 
-    // Render methods
     private void renderPath() {
         try {
             if (path == null) {
@@ -809,7 +783,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
             try {
                 shapeRenderer.end();
             } catch (Exception ignored) {
-                // Ignore errors when ending renderer
             }
         }
     }
@@ -884,7 +857,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
                 return;
             }
 
-            // Get cursor position in world coordinates
             try {
                 int screenX = Gdx.input.getX();
                 int screenY = Gdx.input.getY();
@@ -894,13 +866,10 @@ public class TowerDefenseGame extends ApplicationAdapter {
                 float worldX = worldCoords.x;
                 float worldY = worldCoords.y;
 
-                // Check if placement is valid
                 boolean isValidPlacement = isValidTowerPlacement(worldX, worldY, selectedTowerType.getRange());
 
-                // Get tower color
                 Color towerColor = getTowerColor(selectedTowerType.getId());
 
-                // Render range circle preview
                 try {
                     shapeRenderer.begin(ShapeType.Line);
                     float rangeOpacity = 0.5f;
@@ -916,11 +885,9 @@ public class TowerDefenseGame extends ApplicationAdapter {
                     try {
                         shapeRenderer.end();
                     } catch (Exception ignored) {
-                        // Ignore errors when ending renderer
                     }
                 }
 
-                // Render tower preview
                 try {
                     shapeRenderer.begin(ShapeType.Filled);
                     float previewOpacity = 0.6f;
@@ -936,7 +903,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
                     try {
                         shapeRenderer.end();
                     } catch (Exception ignored) {
-                        // Ignore errors when ending renderer
                     }
                 }
             } catch (Exception e) {
@@ -952,7 +918,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
             batch.setProjectionMatrix(camera.combined);
             batch.begin();
 
-            // Set font color to white for UI elements
             font.setColor(1f, 1f, 1f, 1f);
 
             try {
@@ -1031,70 +996,62 @@ public class TowerDefenseGame extends ApplicationAdapter {
             try {
                 batch.end();
             } catch (Exception ignored) {
-                // Ignore errors when ending batch
             }
         }
     }
 
     private void renderTowerStatsPanel() {
         if (selectedTower == null) {
-            return; // Don't render if no tower is selected
+            return;
         }
 
         try {
-            float panelX = WORLD_WIDTH - 250; // Right side of screen
-            float panelY = 100; // Near bottom
+            float panelX = WORLD_WIDTH - 250;
+            float panelY = 100;
             float panelWidth = 230;
             float panelHeight = 200;
 
-            // Draw panel background
             shapeRenderer.setProjectionMatrix(camera.combined);
             shapeRenderer.begin(ShapeType.Filled);
-            shapeRenderer.setColor(0.2f, 0.2f, 0.3f, 0.9f); // Semi-transparent dark blue
+            shapeRenderer.setColor(0.2f, 0.2f, 0.3f, 0.9f);
             shapeRenderer.rect(panelX, panelY, panelWidth, panelHeight);
             shapeRenderer.end();
 
-            // Draw panel border
             shapeRenderer.begin(ShapeType.Line);
-            shapeRenderer.setColor(1f, 1f, 1f, 1f); // White border
+            shapeRenderer.setColor(1f, 1f, 1f, 1f);
             shapeRenderer.rect(panelX, panelY, panelWidth, panelHeight);
             shapeRenderer.end();
 
-            // Draw text
             batch.setProjectionMatrix(camera.combined);
             batch.begin();
 
             float startY = panelY + panelHeight - 20;
             float lineSpacing = 25f;
 
-            font.setColor(1f, 1f, 0f, 1f); // Yellow title
+            font.setColor(1f, 1f, 0f, 1f);
             font.draw(batch, "Tower Stats", panelX + 10, startY);
 
-            font.setColor(1f, 1f, 1f, 1f); // White text
+            font.setColor(1f, 1f, 1f, 1f);
 
             startY -= lineSpacing;
 
-            // Get upgrade costs
             GameConfig.UpgradeConfig upgrades = gameConfig != null ? gameConfig.getUpgrades() : null;
             int damageCost = upgrades != null ? upgrades.getDamageCost() : 0;
             int rangeCost = upgrades != null ? upgrades.getRangeCost() : 0;
             int cooldownCost = upgrades != null ? upgrades.getCooldownCost() : 0;
 
-            // Render damage with cost
             String damageText = "Damage: " + selectedTower.getDamage();
             boolean canAffordDamage = budgetManager.canAfford(damageCost);
             String damageCostText = " [$" + damageCost + "]" + (canAffordDamage ? " +" : "");
-            font.setColor(1f, 1f, 1f, 1f); // White for stat
+            font.setColor(1f, 1f, 1f, 1f);
             GlyphLayout damageLayout = new GlyphLayout(font, damageText);
             float damageX = panelX + 10;
             font.draw(batch, damageText, damageX, startY);
             
-            // Draw cost with affordability color
-            font.setColor(canAffordDamage ? 0.4f : 1f, canAffordDamage ? 1f : 0.4f, 0.4f, 1f); // Green if affordable, red if not
+            font.setColor(canAffordDamage ? 0.4f : 1f, canAffordDamage ? 1f : 0.4f, 0.4f, 1f);
             GlyphLayout damageCostLayout = new GlyphLayout(font, damageCostText);
             font.draw(batch, damageCostText, damageX + damageLayout.width, startY);
             
-            // Update bounds to include cost
             damageTextBounds.width = damageLayout.width + damageCostLayout.width;
             damageTextBounds.height = Math.max(damageLayout.height, damageCostLayout.height);
             damageTextBounds.x = damageX;
@@ -1102,21 +1059,18 @@ public class TowerDefenseGame extends ApplicationAdapter {
 
             startY -= lineSpacing;
             
-            // Render range with cost
             String rangeText = "Range: " + selectedTower.getRange();
             boolean canAffordRange = budgetManager.canAfford(rangeCost);
             String rangeCostText = " [$" + rangeCost + "]" + (canAffordRange ? " +" : "");
-            font.setColor(1f, 1f, 1f, 1f); // White for stat
+            font.setColor(1f, 1f, 1f, 1f);
             GlyphLayout rangeLayout = new GlyphLayout(font, rangeText);
             float rangeX = panelX + 10;
             font.draw(batch, rangeText, rangeX, startY);
             
-            // Draw cost with affordability color
-            font.setColor(canAffordRange ? 0.4f : 1f, canAffordRange ? 1f : 0.4f, 0.4f, 1f); // Green if affordable, red if not
+            font.setColor(canAffordRange ? 0.4f : 1f, canAffordRange ? 1f : 0.4f, 0.4f, 1f);
             GlyphLayout rangeCostLayout = new GlyphLayout(font, rangeCostText);
             font.draw(batch, rangeCostText, rangeX + rangeLayout.width, startY);
             
-            // Update bounds to include cost
             rangeTextBounds.width = rangeLayout.width + rangeCostLayout.width;
             rangeTextBounds.height = Math.max(rangeLayout.height, rangeCostLayout.height);
             rangeTextBounds.x = rangeX;
@@ -1124,31 +1078,27 @@ public class TowerDefenseGame extends ApplicationAdapter {
 
             startY -= lineSpacing;
             
-            // Render cooldown with cost
             String cooldownText = "Cooldown: " + String.format("%.2f", selectedTower.getBaseAttackCooldown()) + "s";
             boolean canAffordCooldown = budgetManager.canAfford(cooldownCost);
             String cooldownCostText = " [$" + cooldownCost + "]" + (canAffordCooldown ? " +" : "");
-            font.setColor(1f, 1f, 1f, 1f); // White for stat
+            font.setColor(1f, 1f, 1f, 1f);
             GlyphLayout cooldownLayout = new GlyphLayout(font, cooldownText);
             float cooldownX = panelX + 10;
             font.draw(batch, cooldownText, cooldownX, startY);
             
-            // Draw cost with affordability color
-            font.setColor(canAffordCooldown ? 0.4f : 1f, canAffordCooldown ? 1f : 0.4f, 0.4f, 1f); // Green if affordable, red if not
+            font.setColor(canAffordCooldown ? 0.4f : 1f, canAffordCooldown ? 1f : 0.4f, 0.4f, 1f);
             GlyphLayout cooldownCostLayout = new GlyphLayout(font, cooldownCostText);
             font.draw(batch, cooldownCostText, cooldownX + cooldownLayout.width, startY);
             
-            // Update bounds to include cost
             cooldownTextBounds.width = cooldownLayout.width + cooldownCostLayout.width;
             cooldownTextBounds.height = Math.max(cooldownLayout.height, cooldownCostLayout.height);
             cooldownTextBounds.x = cooldownX;
             cooldownTextBounds.y = startY - cooldownTextBounds.height;
 
             startY -= lineSpacing;
-            font.setColor(1f, 1f, 1f, 1f); // Reset to white
+            font.setColor(1f, 1f, 1f, 1f);
             font.draw(batch, "ID: " + selectedTower.getTowerId(), panelX + 10, startY);
 
-            // Reset font color to white before ending batch
             font.setColor(1f, 1f, 1f, 1f);
             batch.end();
 

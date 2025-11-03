@@ -10,21 +10,9 @@ import com.gamedev.towerdefense.model.Position;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Standalone Balance Analyzer Tool
- * 
- * Analyzes game balance metrics including:
- * - Tower efficiency (DPS, cost efficiency, time-to-kill)
- * - Wave difficulty progression
- * - Economy balance
- * 
- * Usage:
- * ./gradlew balance
- */
 public class BalanceAnalyzerTool {
 
     public static void main(String[] args) {
-        // Create minimal LibGDX application just to access file system
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
         config.setWindowedMode(1, 1);
         config.setIdleFPS(1);
@@ -104,7 +92,6 @@ public class BalanceAnalyzerTool {
             this.timeToKill150HP = shotsToKill150HP * attackCooldown;
             this.timeToKill200HP = shotsToKill200HP * attackCooldown;
 
-            // Efficiency score: DPS/cost * range/100 (higher is better)
             this.efficiencyScore = dpsPerCost * (range / 100f);
         }
     }
@@ -116,8 +103,8 @@ public class BalanceAnalyzerTool {
         public final float avgHealth;
         public final float avgSpeed;
         public final int totalReward;
-        public final float pathTime; // Time to traverse path
-        public final float difficultyScore; // Total HP / (average speed)
+        public final float pathTime;
+        public final float difficultyScore;
 
         public WaveAnalysis(GameConfig.WaveConfig wave, Path path) {
             this.waveNumber = wave.getWaveNumber();
@@ -212,7 +199,6 @@ public class BalanceAnalyzerTool {
                 return;
             }
 
-            // Find best and worst efficiency
             TowerAnalysis bestEfficiency = towers.get(0);
             TowerAnalysis worstEfficiency = towers.get(0);
 
@@ -233,7 +219,6 @@ public class BalanceAnalyzerTool {
                         worstEfficiency.name, worstEfficiency.name);
             }
 
-            // Check wave progression
             if (waves.size() >= 2) {
                 float difficultyIncrease = waves.get(waves.size() - 1).difficultyScore / waves.get(0).difficultyScore;
                 System.out.printf("\n📈 Wave difficulty increases by %.2fx from wave 1 to wave %d\n",
@@ -246,7 +231,6 @@ public class BalanceAnalyzerTool {
                 }
             }
 
-            // Economy check
             if (waves.size() > 0) {
                 int totalWaveReward = 0;
                 for (WaveAnalysis wave : waves) {
