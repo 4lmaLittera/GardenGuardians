@@ -1,6 +1,7 @@
 package com.gamedev.towerdefense.model;
 
 public class Enemy {
+
     private Position position;
     private int health;
     private float speed;

@@ -1,10 +1,12 @@
 package com.gamedev.towerdefense.model;
 
-import com.gamedev.towerdefense.config.GameConfig;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.gamedev.towerdefense.config.GameConfig;
+
 public class WaveManager {
+
     private List<GameConfig.WaveConfig> waves;
     private List<PendingEnemy> pendingEnemies;
     private float gameTime;
@@ -12,6 +14,7 @@ public class WaveManager {
     private boolean allWavesComplete;
 
     private static class PendingEnemy {
+
         float spawnTime;
         GameConfig.WaveEnemyConfig enemyConfig;
 
