@@ -17,10 +17,9 @@ public class GameStateTest {
     public void testGameStateEnum_AllValues() {
         GameState[] values = GameState.values();
         assertEquals(3, values.length);
-        
+
         assertTrue(java.util.Arrays.asList(values).contains(GameState.PLAYING));
         assertTrue(java.util.Arrays.asList(values).contains(GameState.WON));
         assertTrue(java.util.Arrays.asList(values).contains(GameState.LOST));
     }
 }
-

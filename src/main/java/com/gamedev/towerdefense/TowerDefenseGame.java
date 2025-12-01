@@ -424,12 +424,12 @@ public class TowerDefenseGame extends ApplicationAdapter {
         if (selectedTower == null) {
             return false;
         }
-        
+
         int screenX = Gdx.input.getX();
         int screenY = Gdx.input.getY();
         Vector2 worldCoords = new Vector2(screenX, screenY);
         viewport.unproject(worldCoords);
-        
+
         GameConfig.UpgradeConfig upgrades = gameConfig != null ? gameConfig.getUpgrades() : null;
         if (upgrades == null) {
             return false;
@@ -1047,18 +1047,18 @@ public class TowerDefenseGame extends ApplicationAdapter {
             GlyphLayout damageLayout = new GlyphLayout(font, damageText);
             float damageX = panelX + 10;
             font.draw(batch, damageText, damageX, startY);
-            
+
             font.setColor(canAffordDamage ? 0.4f : 1f, canAffordDamage ? 1f : 0.4f, 0.4f, 1f);
             GlyphLayout damageCostLayout = new GlyphLayout(font, damageCostText);
             font.draw(batch, damageCostText, damageX + damageLayout.width, startY);
-            
+
             damageTextBounds.width = damageLayout.width + damageCostLayout.width;
             damageTextBounds.height = Math.max(damageLayout.height, damageCostLayout.height);
             damageTextBounds.x = damageX;
             damageTextBounds.y = startY - damageTextBounds.height;
 
             startY -= lineSpacing;
-            
+
             String rangeText = "Range: " + selectedTower.getRange();
             boolean canAffordRange = budgetManager.canAfford(rangeCost);
             String rangeCostText = " [$" + rangeCost + "]" + (canAffordRange ? " +" : "");
@@ -1066,18 +1066,18 @@ public class TowerDefenseGame extends ApplicationAdapter {
             GlyphLayout rangeLayout = new GlyphLayout(font, rangeText);
             float rangeX = panelX + 10;
             font.draw(batch, rangeText, rangeX, startY);
-            
+
             font.setColor(canAffordRange ? 0.4f : 1f, canAffordRange ? 1f : 0.4f, 0.4f, 1f);
             GlyphLayout rangeCostLayout = new GlyphLayout(font, rangeCostText);
             font.draw(batch, rangeCostText, rangeX + rangeLayout.width, startY);
-            
+
             rangeTextBounds.width = rangeLayout.width + rangeCostLayout.width;
             rangeTextBounds.height = Math.max(rangeLayout.height, rangeCostLayout.height);
             rangeTextBounds.x = rangeX;
             rangeTextBounds.y = startY - rangeTextBounds.height;
 
             startY -= lineSpacing;
-            
+
             String cooldownText = "Cooldown: " + String.format("%.2f", selectedTower.getBaseAttackCooldown()) + "s";
             boolean canAffordCooldown = budgetManager.canAfford(cooldownCost);
             String cooldownCostText = " [$" + cooldownCost + "]" + (canAffordCooldown ? " +" : "");
@@ -1085,11 +1085,11 @@ public class TowerDefenseGame extends ApplicationAdapter {
             GlyphLayout cooldownLayout = new GlyphLayout(font, cooldownText);
             float cooldownX = panelX + 10;
             font.draw(batch, cooldownText, cooldownX, startY);
-            
+
             font.setColor(canAffordCooldown ? 0.4f : 1f, canAffordCooldown ? 1f : 0.4f, 0.4f, 1f);
             GlyphLayout cooldownCostLayout = new GlyphLayout(font, cooldownCostText);
             font.draw(batch, cooldownCostText, cooldownX + cooldownLayout.width, startY);
-            
+
             cooldownTextBounds.width = cooldownLayout.width + cooldownCostLayout.width;
             cooldownTextBounds.height = Math.max(cooldownLayout.height, cooldownCostLayout.height);
             cooldownTextBounds.x = cooldownX;

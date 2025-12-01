@@ -15,20 +15,19 @@ public class BudgetManager {
         this.budget = budget;
     }
 
-    public void spend(int cost){
+    public void spend(int cost) {
         this.budget -= cost;
     }
 
-    public void earn(int amount){
+    public void earn(int amount) {
         this.budget += amount;
-    } 
+    }
 
-    public boolean canAfford(int amount){
-        if (this.budget - amount >=0) {
+    public boolean canAfford(int amount) {
+        if (this.budget - amount >= 0) {
             return true;
         }
         return false;
     }
-    
-    
+
 }

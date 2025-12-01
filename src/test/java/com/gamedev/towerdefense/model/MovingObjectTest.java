@@ -143,4 +143,3 @@ public class MovingObjectTest {
         assertFalse(obj.hasReachedTarget());
     }
 }
-

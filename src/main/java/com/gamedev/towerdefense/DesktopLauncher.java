@@ -19,4 +19,3 @@ public final class DesktopLauncher {
         new Lwjgl3Application(new TowerDefenseGame(), config);
     }
 }
-

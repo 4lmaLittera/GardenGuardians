@@ -56,9 +56,11 @@ public class Tower {
     public void increaseDamage(int damage) {
         this.damage += damage;
     }
+
     public void increaseRange(int range) {
         this.range += range;
     }
+
     public void decreaseAttackCooldown(float cooldownDecrease) {
         this.baseAttackCooldown -= cooldownDecrease;
     }

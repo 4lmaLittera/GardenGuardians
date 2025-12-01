@@ -81,4 +81,3 @@ public class MoneyCoinTest {
         assertFalse(coin.hasReachedTarget());
     }
 }
-

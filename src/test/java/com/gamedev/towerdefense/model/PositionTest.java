@@ -106,4 +106,3 @@ public class PositionTest {
         assertEquals(expected, distance, 0.001f);
     }
 }
-

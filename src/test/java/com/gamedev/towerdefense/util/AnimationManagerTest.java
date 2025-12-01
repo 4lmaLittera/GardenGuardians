@@ -20,11 +20,9 @@ public class AnimationManagerTest {
                 new HeadlessApplication(new com.badlogic.gdx.ApplicationAdapter() {
                     @Override
                     public void create() {
-                        // LibGDX initialized
                     }
                 }, config);
 
-                // Wait for initialization with timeout - need both app and graphics
                 int maxWait = 100;
                 int waited = 0;
                 while (waited < maxWait &&
