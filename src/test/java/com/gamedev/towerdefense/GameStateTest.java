@@ -11,15 +11,17 @@ public class GameStateTest {
         assertNotNull(GameState.PLAYING);
         assertNotNull(GameState.WON);
         assertNotNull(GameState.LOST);
+        assertNotNull(GameState.PAUSED);
     }
 
     @Test
     public void testGameStateEnum_AllValues() {
         GameState[] values = GameState.values();
-        assertEquals(3, values.length);
+        assertEquals(4, values.length);
 
         assertTrue(java.util.Arrays.asList(values).contains(GameState.PLAYING));
         assertTrue(java.util.Arrays.asList(values).contains(GameState.WON));
         assertTrue(java.util.Arrays.asList(values).contains(GameState.LOST));
+        assertTrue(java.util.Arrays.asList(values).contains(GameState.PAUSED));
     }
 }
