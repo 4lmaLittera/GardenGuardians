@@ -126,11 +126,9 @@ public class GameRenderer {
         if (path == null) {
             return;
         }
-        try {
-            game.getShapeRenderer().begin(ShapeType.Line);
-            game.getShapeRenderer().setColor(1, 1, 1, 1);
-
-            if (path instanceof CurvedPath) {
+        game.getShapeRenderer().setColor(1, 1, 1, 1);
+        if (path instanceof CurvedPath) {
+            withShapeRenderer(ShapeType.Line, () -> {
                 Position prev = path.getPositionAt(0f);
                 for (int i = 1; i <= CURVED_PATH_SAMPLES; i++) {
                     float t = (float) i / CURVED_PATH_SAMPLES;
@@ -140,12 +138,13 @@ public class GameRenderer {
                     }
                     prev = current;
                 }
-            } else {
-                List<Position> waypoints = path.getWaypoints();
-                if (waypoints == null || waypoints.size() < 2) {
-                    game.getShapeRenderer().end();
-                    return;
-                }
+            });
+        } else {
+            List<Position> waypoints = path.getWaypoints();
+            if (waypoints == null || waypoints.size() < 2) {
+                return;
+            }
+            withShapeRenderer(ShapeType.Line, () -> {
                 for (int i = 0; i < waypoints.size() - 1; i++) {
                     Position start = waypoints.get(i);
                     Position end = waypoints.get(i + 1);
@@ -153,14 +152,7 @@ public class GameRenderer {
                         game.getShapeRenderer().line(start.getX(), start.getY(), end.getX(), end.getY());
                     }
                 }
-            }
-            game.getShapeRenderer().end();
-        } catch (Exception e) {
-            System.err.println("Error rendering path: " + e.getMessage());
-            try {
-                game.getShapeRenderer().end();
-            } catch (Exception ignored) {
-            }
+            });
         }
     }
 
@@ -415,98 +407,115 @@ public class GameRenderer {
             float panelX = TowerDefenseGame.WORLD_WIDTH - panelWidth - TowerDefenseGame.UI_MARGIN;
             float panelY = STATS_PANEL_Y;
 
-            game.getShapeRenderer().setProjectionMatrix(game.getCamera().combined);
-            game.getShapeRenderer().begin(ShapeType.Filled);
-            game.getShapeRenderer().setColor(0.2f, 0.2f, 0.3f, 0.9f);
-            game.getShapeRenderer().rect(panelX, panelY, panelWidth, panelHeight);
-            game.getShapeRenderer().end();
-
-            game.getShapeRenderer().begin(ShapeType.Line);
-            game.getShapeRenderer().setColor(1f, 1f, 1f, 1f);
-            game.getShapeRenderer().rect(panelX, panelY, panelWidth, panelHeight);
-            game.getShapeRenderer().end();
-
-            game.getBatch().setProjectionMatrix(game.getCamera().combined);
-            game.getBatch().begin();
-
-            float startY = panelY + panelHeight - 20;
-            float lineSpacing = 25f;
-
-            game.getFont().setColor(1f, 1f, 0f, 1f);
-            game.getFont().draw(game.getBatch(), "Tower Stats", panelX + 10, startY);
-
-            game.getFont().setColor(1f, 1f, 1f, 1f);
-
-            startY -= lineSpacing;
-
-            GameConfig.UpgradeConfig upgrades = game.getGameConfig() != null ? game.getGameConfig().getUpgrades() : null;
-            int damageCost = upgrades != null ? upgrades.getDamageCost() : 0;
-            int rangeCost = upgrades != null ? upgrades.getRangeCost() : 0;
-            int cooldownCost = upgrades != null ? upgrades.getCooldownCost() : 0;
-
-            String damageText = "Damage: " + selectedTower.getDamage();
-            boolean canAffordDamage = game.getBudgetManager().canAfford(damageCost);
-            String damageCostText = " [$" + damageCost + "]" + (canAffordDamage ? " +" : "");
-            game.getFont().setColor(1f, 1f, 1f, 1f);
-            com.badlogic.gdx.graphics.g2d.GlyphLayout damageLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout(game.getFont(), damageText);
-            float damageX = panelX + 10;
-            game.getFont().draw(game.getBatch(), damageText, damageX, startY);
-
-            game.getFont().setColor(canAffordDamage ? 0.4f : 1f, canAffordDamage ? 1f : 0.4f, 0.4f, 1f);
-            com.badlogic.gdx.graphics.g2d.GlyphLayout damageCostLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout(game.getFont(), damageCostText);
-            game.getFont().draw(game.getBatch(), damageCostText, damageX + damageLayout.width, startY);
-
-            game.getDamageTextBounds().width = damageLayout.width + damageCostLayout.width;
-            game.getDamageTextBounds().height = Math.max(damageLayout.height, damageCostLayout.height);
-            game.getDamageTextBounds().x = damageX;
-            game.getDamageTextBounds().y = startY - game.getDamageTextBounds().height;
-
-            startY -= lineSpacing;
-
-            String rangeText = "Range: " + selectedTower.getRange();
-            boolean canAffordRange = game.getBudgetManager().canAfford(rangeCost);
-            String rangeCostText = " [$" + rangeCost + "]" + (canAffordRange ? " +" : "");
-            game.getFont().setColor(1f, 1f, 1f, 1f);
-            com.badlogic.gdx.graphics.g2d.GlyphLayout rangeLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout(game.getFont(), rangeText);
-            float rangeX = panelX + 10;
-            game.getFont().draw(game.getBatch(), rangeText, rangeX, startY);
-
-            game.getFont().setColor(canAffordRange ? 0.4f : 1f, canAffordRange ? 1f : 0.4f, 0.4f, 1f);
-            com.badlogic.gdx.graphics.g2d.GlyphLayout rangeCostLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout(game.getFont(), rangeCostText);
-            game.getFont().draw(game.getBatch(), rangeCostText, rangeX + rangeLayout.width, startY);
-
-            game.getRangeTextBounds().width = rangeLayout.width + rangeCostLayout.width;
-            game.getRangeTextBounds().height = Math.max(rangeLayout.height, rangeCostLayout.height);
-            game.getRangeTextBounds().x = rangeX;
-            game.getRangeTextBounds().y = startY - game.getRangeTextBounds().height;
-
-            startY -= lineSpacing;
-
-            String cooldownText = "Cooldown: " + String.format("%.2f", selectedTower.getBaseAttackCooldown()) + "s";
-            boolean canAffordCooldown = game.getBudgetManager().canAfford(cooldownCost);
-            String cooldownCostText = " [$" + cooldownCost + "]" + (canAffordCooldown ? " +" : "");
-            game.getFont().setColor(1f, 1f, 1f, 1f);
-            com.badlogic.gdx.graphics.g2d.GlyphLayout cooldownLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout(game.getFont(), cooldownText);
-            float cooldownX = panelX + 10;
-            game.getFont().draw(game.getBatch(), cooldownText, cooldownX, startY);
-
-            game.getFont().setColor(canAffordCooldown ? 0.4f : 1f, canAffordCooldown ? 1f : 0.4f, 0.4f, 1f);
-            com.badlogic.gdx.graphics.g2d.GlyphLayout cooldownCostLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout(game.getFont(), cooldownCostText);
-            game.getFont().draw(game.getBatch(), cooldownCostText, cooldownX + cooldownLayout.width, startY);
-
-            game.getCooldownTextBounds().width = cooldownLayout.width + cooldownCostLayout.width;
-            game.getCooldownTextBounds().height = Math.max(cooldownLayout.height, cooldownCostLayout.height);
-            game.getCooldownTextBounds().x = cooldownX;
-            game.getCooldownTextBounds().y = startY - game.getCooldownTextBounds().height;
-
-            startY -= lineSpacing;
-            game.getFont().setColor(1f, 1f, 1f, 1f);
-            game.getFont().draw(game.getBatch(), "ID: " + selectedTower.getTowerId(), panelX + 10, startY);
-
-            game.getBatch().end();
+            drawStatsBackground(panelX, panelY, panelWidth, panelHeight);
+            drawStatsTextEntries(selectedTower, panelX, panelY, panelHeight);
 
         } catch (Exception e) {
             System.err.println("Error rendering tower stats panel: " + e.getMessage());
         }
+    }
+
+    private void drawStatsBackground(float panelX, float panelY, float panelWidth, float panelHeight) {
+        withShapeRenderer(ShapeType.Filled, () -> {
+            game.getShapeRenderer().setColor(0.2f, 0.2f, 0.3f, 0.9f);
+            game.getShapeRenderer().rect(panelX, panelY, panelWidth, panelHeight);
+        });
+
+        withShapeRenderer(ShapeType.Line, () -> {
+            game.getShapeRenderer().setColor(1f, 1f, 1f, 1f);
+            game.getShapeRenderer().rect(panelX, panelY, panelWidth, panelHeight);
+        });
+    }
+
+    private void drawStatsTextEntries(Tower selectedTower, float panelX, float panelY,
+            float panelHeight) {
+        game.getBatch().setProjectionMatrix(game.getCamera().combined);
+        game.getBatch().begin();
+
+        float startY = panelY + panelHeight - 20;
+        float lineSpacing = 25f;
+
+        game.getFont().setColor(1f, 1f, 0f, 1f);
+        game.getFont().draw(game.getBatch(), "Tower Stats", panelX + 10, startY);
+
+        game.getFont().setColor(1f, 1f, 1f, 1f);
+        startY -= lineSpacing;
+
+        GameConfig.UpgradeConfig upgrades = game.getGameConfig() != null ? game.getGameConfig().getUpgrades() : null;
+        int damageCost = upgrades != null ? upgrades.getDamageCost() : 0;
+        int rangeCost = upgrades != null ? upgrades.getRangeCost() : 0;
+        int cooldownCost = upgrades != null ? upgrades.getCooldownCost() : 0;
+
+        drawDamageEntry(selectedTower, panelX, startY, damageCost);
+        startY -= lineSpacing;
+        drawRangeEntry(selectedTower, panelX, startY, rangeCost);
+        startY -= lineSpacing;
+        drawCooldownEntry(selectedTower, panelX, startY, cooldownCost);
+
+        startY -= lineSpacing;
+        game.getFont().setColor(1f, 1f, 1f, 1f);
+        game.getFont().draw(game.getBatch(), "ID: " + selectedTower.getTowerId(), panelX + 10, startY);
+
+        game.getBatch().end();
+    }
+
+    private void drawDamageEntry(Tower selectedTower, float panelX, float y, int damageCost) {
+        String damageText = "Damage: " + selectedTower.getDamage();
+        boolean canAffordDamage = game.getBudgetManager().canAfford(damageCost);
+        String damageCostText = " [$" + damageCost + "]" + (canAffordDamage ? " +" : "");
+
+        game.getFont().setColor(1f, 1f, 1f, 1f);
+        com.badlogic.gdx.graphics.g2d.GlyphLayout damageLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout(game.getFont(), damageText);
+        float damageX = panelX + 10;
+        game.getFont().draw(game.getBatch(), damageText, damageX, y);
+
+        game.getFont().setColor(canAffordDamage ? 0.4f : 1f, canAffordDamage ? 1f : 0.4f, 0.4f, 1f);
+        com.badlogic.gdx.graphics.g2d.GlyphLayout damageCostLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout(game.getFont(), damageCostText);
+        game.getFont().draw(game.getBatch(), damageCostText, damageX + damageLayout.width, y);
+
+        game.getDamageTextBounds().width = damageLayout.width + damageCostLayout.width;
+        game.getDamageTextBounds().height = Math.max(damageLayout.height, damageCostLayout.height);
+        game.getDamageTextBounds().x = damageX;
+        game.getDamageTextBounds().y = y - game.getDamageTextBounds().height;
+    }
+
+    private void drawRangeEntry(Tower selectedTower, float panelX, float y, int rangeCost) {
+        String rangeText = "Range: " + selectedTower.getRange();
+        boolean canAffordRange = game.getBudgetManager().canAfford(rangeCost);
+        String rangeCostText = " [$" + rangeCost + "]" + (canAffordRange ? " +" : "");
+
+        game.getFont().setColor(1f, 1f, 1f, 1f);
+        com.badlogic.gdx.graphics.g2d.GlyphLayout rangeLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout(game.getFont(), rangeText);
+        float rangeX = panelX + 10;
+        game.getFont().draw(game.getBatch(), rangeText, rangeX, y);
+
+        game.getFont().setColor(canAffordRange ? 0.4f : 1f, canAffordRange ? 1f : 0.4f, 0.4f, 1f);
+        com.badlogic.gdx.graphics.g2d.GlyphLayout rangeCostLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout(game.getFont(), rangeCostText);
+        game.getFont().draw(game.getBatch(), rangeCostText, rangeX + rangeLayout.width, y);
+
+        game.getRangeTextBounds().width = rangeLayout.width + rangeCostLayout.width;
+        game.getRangeTextBounds().height = Math.max(rangeLayout.height, rangeCostLayout.height);
+        game.getRangeTextBounds().x = rangeX;
+        game.getRangeTextBounds().y = y - game.getRangeTextBounds().height;
+    }
+
+    private void drawCooldownEntry(Tower selectedTower, float panelX, float y, int cooldownCost) {
+        String cooldownText = "Cooldown: " + String.format("%.2f", selectedTower.getBaseAttackCooldown()) + "s";
+        boolean canAffordCooldown = game.getBudgetManager().canAfford(cooldownCost);
+        String cooldownCostText = " [$" + cooldownCost + "]" + (canAffordCooldown ? " +" : "");
+
+        game.getFont().setColor(1f, 1f, 1f, 1f);
+        com.badlogic.gdx.graphics.g2d.GlyphLayout cooldownLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout(game.getFont(), cooldownText);
+        float cooldownX = panelX + 10;
+        game.getFont().draw(game.getBatch(), cooldownText, cooldownX, y);
+
+        game.getFont().setColor(canAffordCooldown ? 0.4f : 1f, canAffordCooldown ? 1f : 0.4f, 0.4f, 1f);
+        com.badlogic.gdx.graphics.g2d.GlyphLayout cooldownCostLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout(game.getFont(), cooldownCostText);
+        game.getFont().draw(game.getBatch(), cooldownCostText, cooldownX + cooldownLayout.width, y);
+
+        game.getCooldownTextBounds().width = cooldownLayout.width + cooldownCostLayout.width;
+        game.getCooldownTextBounds().height = Math.max(cooldownLayout.height, cooldownCostLayout.height);
+        game.getCooldownTextBounds().x = cooldownX;
+        game.getCooldownTextBounds().y = y - game.getCooldownTextBounds().height;
     }
 }
