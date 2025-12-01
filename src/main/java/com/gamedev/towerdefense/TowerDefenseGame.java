@@ -36,6 +36,18 @@ public class TowerDefenseGame extends ApplicationAdapter {
     // Constants
     public static final int WORLD_WIDTH = 1280;
     public static final int WORLD_HEIGHT = 720;
+    public static final float UI_MARGIN = 10f;
+    public static final float TOWER_LIST_START_Y = WORLD_HEIGHT - 100f;
+    public static final float TOWER_LIST_SPACING = 20f;
+    public static final float DEFAULT_PROJECTILE_SPEED = 300f;
+    public static final float DEFAULT_COIN_SPEED = 200f;
+
+    // Enemy animation defaults
+    public static final int ENEMY_FRAME_WIDTH = 32;
+    public static final int ENEMY_FRAME_HEIGHT = 32;
+    public static final int ENEMY_ANIM_COLS = 4;
+    public static final int ENEMY_ANIM_ROWS = 4;
+    public static final float ENEMY_FRAME_DURATION = 0.2f;
 
     // Rendering components
     private SpriteBatch batch;
@@ -95,11 +107,11 @@ public class TowerDefenseGame extends ApplicationAdapter {
 
             if (beetlTexture != null) {
                 try {
-                    int frameWidth = 32;
-                    int frameHeight = 32;
-                    int cols = 4;
-                    int rows = 4;
-                    float frameDuration = 0.2f;
+                    int frameWidth = ENEMY_FRAME_WIDTH;
+                    int frameHeight = ENEMY_FRAME_HEIGHT;
+                    int cols = ENEMY_ANIM_COLS;
+                    int rows = ENEMY_ANIM_ROWS;
+                    float frameDuration = ENEMY_FRAME_DURATION;
                     enemyAnimation = new AnimationManager(beetlTexture, frameWidth, frameHeight, cols, rows,
                             frameDuration);
                 } catch (GdxRuntimeException e) {
@@ -405,8 +417,8 @@ public class TowerDefenseGame extends ApplicationAdapter {
             enemy.update(deltaTime);
             if (!enemy.isAlive()) {
                 Position enemyPos = enemy.getPosition();
-                Position budgetTextPos = new Position(10, WORLD_HEIGHT - 10);
-                float coinSpeed = gameConfig.getMoneyCoinSpeed() > 0 ? gameConfig.getMoneyCoinSpeed() : 200f;
+                Position budgetTextPos = new Position(UI_MARGIN, WORLD_HEIGHT - UI_MARGIN);
+                float coinSpeed = gameConfig.getMoneyCoinSpeed() > 0 ? gameConfig.getMoneyCoinSpeed() : DEFAULT_COIN_SPEED;
                 MoneyCoin coin = new MoneyCoin(enemyPos, budgetTextPos, coinSpeed, enemy.getReward());
                 moneyCoins.add(coin);
                 it.remove();
@@ -629,7 +641,7 @@ public class TowerDefenseGame extends ApplicationAdapter {
         Position towerPos = new Position(worldX, worldY);
         float projectileSpeed = selectedTowerType.getProjectileSpeed() > 0
                 ? selectedTowerType.getProjectileSpeed()
-                : (gameConfig.getProjectileSpeed() > 0 ? gameConfig.getProjectileSpeed() : 300f);
+                : (gameConfig.getProjectileSpeed() > 0 ? gameConfig.getProjectileSpeed() : DEFAULT_PROJECTILE_SPEED);
 
         Tower newTower = new Tower(
                 selectedTowerType.getCost(),
