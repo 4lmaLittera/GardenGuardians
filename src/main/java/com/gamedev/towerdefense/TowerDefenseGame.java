@@ -22,13 +22,18 @@ import com.gamedev.towerdefense.config.GameConfig;
 import com.gamedev.towerdefense.model.BudgetManager;
 import com.gamedev.towerdefense.model.CurvedPath;
 import com.gamedev.towerdefense.model.Enemy;
+import com.gamedev.towerdefense.model.EnemyFactory;
 import com.gamedev.towerdefense.model.GameState;
 import com.gamedev.towerdefense.model.MoneyCoin;
+import com.gamedev.towerdefense.model.NearestEnemyStrategy;
 import com.gamedev.towerdefense.model.Path;
 import com.gamedev.towerdefense.model.Position;
 import com.gamedev.towerdefense.model.Projectile;
+import com.gamedev.towerdefense.model.StrongestEnemyStrategy;
+import com.gamedev.towerdefense.model.TargetingStrategy;
 import com.gamedev.towerdefense.model.Tower;
 import com.gamedev.towerdefense.model.WaveManager;
+import com.gamedev.towerdefense.model.WeakestEnemyStrategy;
 import com.gamedev.towerdefense.util.AnimationManager;
 
 public class TowerDefenseGame extends ApplicationAdapter {
@@ -63,11 +68,13 @@ public class TowerDefenseGame extends ApplicationAdapter {
     private Rectangle damageTextBounds;
     private Rectangle rangeTextBounds;
     private Rectangle cooldownTextBounds;
+    private Rectangle strategyTextBounds;
 
     // Game configuration and managers
     private GameConfig gameConfig;
     private BudgetManager budgetManager;
     private WaveManager waveManager;
+    private final EnemyFactory enemyFactory = new EnemyFactory();
 
     // Game state
     private int lives;
@@ -185,7 +192,9 @@ public class TowerDefenseGame extends ApplicationAdapter {
                         if (reward == 0) {
                             reward = 10;
                         }
-                        enemies.add(new Enemy(path, enemyConfig.getHealth(), enemyConfig.getSpeed(), 0, reward));
+                        // Using EnemyFactory pattern for enemy creation
+                        enemies.add(enemyFactory.createCustomEnemy(
+                            path, enemyConfig.getHealth(), enemyConfig.getSpeed(), 0, reward));
                     }
                 }
             } catch (RuntimeException e) {
@@ -212,6 +221,7 @@ public class TowerDefenseGame extends ApplicationAdapter {
         damageTextBounds = new Rectangle();
         rangeTextBounds = new Rectangle();
         cooldownTextBounds = new Rectangle();
+        strategyTextBounds = new Rectangle();
     }
 
     @Override
@@ -388,6 +398,10 @@ public class TowerDefenseGame extends ApplicationAdapter {
         return cooldownTextBounds;
     }
 
+    public com.badlogic.gdx.math.Rectangle getStrategyTextBounds() {
+        return strategyTextBounds;
+    }
+
     public com.gamedev.towerdefense.model.GameState getGameState() {
         return gameState;
     }
@@ -484,6 +498,10 @@ public class TowerDefenseGame extends ApplicationAdapter {
             return;
         }
 
+        if (Gdx.input.isKeyJustPressed(Input.Keys.T) && selectedTower != null) {
+            cycleTargetingStrategy(selectedTower);
+        }
+
         int towerKey = getTowerKeyPressed();
 
         switch (towerKey) {
@@ -503,6 +521,21 @@ public class TowerDefenseGame extends ApplicationAdapter {
         } else if (Gdx.input.justTouched()) {
             selectedTower = null;
         }
+    }
+
+    private void cycleTargetingStrategy(Tower tower) {
+        TargetingStrategy current = tower.getTargetingStrategy();
+        TargetingStrategy next;
+        
+        if (current instanceof NearestEnemyStrategy) {
+            next = new StrongestEnemyStrategy();
+        } else if (current instanceof StrongestEnemyStrategy) {
+            next = new WeakestEnemyStrategy();
+        } else {
+            next = new NearestEnemyStrategy();
+        }
+        
+        tower.setTargetingStrategy(next);
     }
 
     private boolean handleTowerDescriptionClick() {
@@ -548,6 +581,11 @@ public class TowerDefenseGame extends ApplicationAdapter {
                 budgetManager.spend(cooldownCost);
                 selectedTower.decreaseAttackCooldown(cooldownAmount);
             }
+            return true;
+        }
+        // Strategy toggle - click to cycle through targeting strategies
+        if (strategyTextBounds.contains(worldCoords.x, worldCoords.y)) {
+            cycleTargetingStrategy(selectedTower);
             return true;
         }
         return false;

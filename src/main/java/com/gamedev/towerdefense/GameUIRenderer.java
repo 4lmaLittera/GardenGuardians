@@ -138,7 +138,6 @@ public class GameUIRenderer {
             float panelY = GameRenderer.STATS_PANEL_Y;
 
             drawStatsBackground(panelX, panelY, panelWidth, panelHeight);
-            drawStatsTextEntries(selectedTower, panelX, panelY, panelHeight);
 
         } catch (Exception e) {
             System.err.println("Error rendering tower stats panel: " + e.getMessage());
@@ -212,7 +211,22 @@ public class GameUIRenderer {
         game.getFont().setColor(1f, 1f, 1f, 1f);
         game.getFont().draw(game.getBatch(), "ID: " + selectedTower.getTowerId(), panelX + 10, startY);
 
-        // batch begin/end handled by caller (GameRenderer.withBatch)
+        // Display targeting strategy with click-to-change
+        startY -= lineSpacing;
+        String strategyName = getStrategyName(selectedTower.getTargetingStrategy());
+        drawStatEntry("Target: " + strategyName, " [click]", panelX + 10, startY, true, game.getStrategyTextBounds());
+
+    }
+
+    private String getStrategyName(com.gamedev.towerdefense.model.TargetingStrategy strategy) {
+        if (strategy instanceof com.gamedev.towerdefense.model.NearestEnemyStrategy) {
+            return "Nearest";
+        } else if (strategy instanceof com.gamedev.towerdefense.model.StrongestEnemyStrategy) {
+            return "Strongest";
+        } else if (strategy instanceof com.gamedev.towerdefense.model.WeakestEnemyStrategy) {
+            return "Weakest";
+        }
+        return "Unknown";
     }
 
     private void drawStatEntry(String labelText, String costText, float x, float y, boolean canAfford,

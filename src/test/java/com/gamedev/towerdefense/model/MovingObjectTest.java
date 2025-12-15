@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class MovingObjectTest {
 
-    // Concrete implementation for testing abstract class
     private static class TestMovingObject extends MovingObject {
         private boolean updateTargetCalled = false;
         private boolean onReachTargetCalled = false;

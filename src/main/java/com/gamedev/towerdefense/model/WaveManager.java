@@ -12,6 +12,7 @@ public class WaveManager {
     private float gameTime;
     private int currentWaveIndex;
     private boolean allWavesComplete;
+    private final EnemyFactory enemyFactory;
 
     private static class PendingEnemy {
 
@@ -30,6 +31,7 @@ public class WaveManager {
         this.gameTime = 0f;
         this.currentWaveIndex = 0;
         this.allWavesComplete = false;
+        this.enemyFactory = new EnemyFactory();
         prepareWaveEnemies();
     }
 
@@ -59,12 +61,24 @@ public class WaveManager {
 
             if (gameTime >= pending.spawnTime) {
                 GameConfig.WaveEnemyConfig enemyConfig = pending.enemyConfig;
-                int reward = enemyConfig.getReward();
-                if (reward == 0) {
-                    reward = 10;
+                Enemy enemy;
+                
+                if (enemyConfig.getType() != null && !enemyConfig.getType().isEmpty()) {
+                    enemy = enemyFactory.createEnemy(enemyConfig.getType(), path);
+                } else {
+                    int reward = enemyConfig.getReward();
+                    if (reward == 0) {
+                        reward = 10;
+                    }
+                    enemy = enemyFactory.createCustomEnemy(
+                        path, 
+                        enemyConfig.getHealth(),
+                        enemyConfig.getSpeed(), 
+                        0, 
+                        reward
+                    );
                 }
-                Enemy enemy = new Enemy(path, enemyConfig.getHealth(),
-                        enemyConfig.getSpeed(), 0, reward);
+                
                 enemies.add(enemy);
                 currentWaveIndex++;
             } else {
@@ -102,3 +116,4 @@ public class WaveManager {
         return allWavesComplete;
     }
 }
+

@@ -18,84 +18,83 @@
       "waveNumber": 1,
       "startTime": 5.0,
       "enemies": [
-        { "health": 100, "speed": 100.0, "spawnDelay": 0.0, "reward": 10 },
-        { "health": 100, "speed": 100.0, "spawnDelay": 1.0, "reward": 10 },
-        { "health": 100, "speed": 100.0, "spawnDelay": 2.0, "reward": 10 }
+        { "type": "boss", "spawnDelay": 0.0 },
+        { "type": "basic", "spawnDelay": 1.0 },
+        { "type": "basic", "spawnDelay": 2.0 }
       ]
     },
     {
       "waveNumber": 2,
       "startTime": 20.0,
       "enemies": [
-        { "health": 150, "speed": 110.0, "spawnDelay": 0.0, "reward": 15 },
-        { "health": 150, "speed": 110.0, "spawnDelay": 0.7, "reward": 15 },
-        { "health": 150, "speed": 110.0, "spawnDelay": 1.4, "reward": 15 },
-        { "health": 150, "speed": 110.0, "spawnDelay": 2.1, "reward": 15 }
+        { "type": "basic", "spawnDelay": 0.0 },
+        { "type": "fast", "spawnDelay": 0.7 },
+        { "type": "basic", "spawnDelay": 1.4 },
+        { "type": "fast", "spawnDelay": 2.1 }
       ]
     },
     {
       "waveNumber": 3,
       "startTime": 40.0,
       "enemies": [
-        { "health": 200, "speed": 120.0, "spawnDelay": 0.0, "reward": 20 },
-        { "health": 200, "speed": 120.0, "spawnDelay": 0.5, "reward": 20 },
-        { "health": 200, "speed": 120.0, "spawnDelay": 1.0, "reward": 20 },
-        { "health": 200, "speed": 120.0, "spawnDelay": 1.5, "reward": 20 },
-        { "health": 200, "speed": 120.0, "spawnDelay": 2.0, "reward": 20 }
+        { "type": "basic", "spawnDelay": 0.0 },
+        { "type": "fast", "spawnDelay": 0.5 },
+        { "type": "tank", "spawnDelay": 1.0 },
+        { "type": "basic", "spawnDelay": 1.5 },
+        { "type": "fast", "spawnDelay": 2.0 }
       ]
     },
     {
       "waveNumber": 4,
       "startTime": 60.0,
       "enemies": [
-        { "health": 250, "speed": 130.0, "spawnDelay": 0.0, "reward": 25 },
-        { "health": 250, "speed": 130.0, "spawnDelay": 0.4, "reward": 25 },
-        { "health": 250, "speed": 130.0, "spawnDelay": 0.8, "reward": 25 },
-        { "health": 250, "speed": 130.0, "spawnDelay": 1.2, "reward": 25 },
-        { "health": 250, "speed": 130.0, "spawnDelay": 1.6, "reward": 25 },
-        { "health": 250, "speed": 130.0, "spawnDelay": 2.0, "reward": 25 }
+        { "type": "fast", "spawnDelay": 0.0 },
+        { "type": "fast", "spawnDelay": 0.4 },
+        { "type": "tank", "spawnDelay": 0.8 },
+        { "type": "basic", "spawnDelay": 1.2 },
+        { "type": "tank", "spawnDelay": 1.6 },
+        { "type": "fast", "spawnDelay": 2.0 }
       ]
     },
     {
       "waveNumber": 5,
       "startTime": 80.0,
       "enemies": [
-        { "health": 300, "speed": 140.0, "spawnDelay": 0.0, "reward": 30 },
-        { "health": 300, "speed": 140.0, "spawnDelay": 0.3, "reward": 30 },
-        { "health": 300, "speed": 140.0, "spawnDelay": 0.6, "reward": 30 },
-        { "health": 300, "speed": 140.0, "spawnDelay": 0.9, "reward": 30 },
-        { "health": 300, "speed": 140.0, "spawnDelay": 1.2, "reward": 30 },
-        { "health": 300, "speed": 140.0, "spawnDelay": 1.5, "reward": 30 },
-        { "health": 300, "speed": 140.0, "spawnDelay": 1.8, "reward": 30 }
+        { "type": "tank", "spawnDelay": 0.0 },
+        { "type": "fast", "spawnDelay": 0.3 },
+        { "type": "fast", "spawnDelay": 0.6 },
+        { "type": "tank", "spawnDelay": 0.9 },
+        { "type": "basic", "spawnDelay": 1.2 },
+        { "type": "boss", "spawnDelay": 1.5 }
       ]
     },
     {
       "waveNumber": 6,
       "startTime": 100.0,
       "enemies": [
-        { "health": 300, "speed": 145.0, "spawnDelay": 0.0, "reward": 30 },
-        { "health": 300, "speed": 145.0, "spawnDelay": 0.4, "reward": 30 },
-        { "health": 300, "speed": 145.0, "spawnDelay": 0.8, "reward": 30 },
-        { "health": 350, "speed": 140.0, "spawnDelay": 1.2, "reward": 35 },
-        { "health": 350, "speed": 140.0, "spawnDelay": 1.6, "reward": 35 },
-        { "health": 350, "speed": 140.0, "spawnDelay": 2.0, "reward": 35 },
-        { "health": 400, "speed": 135.0, "spawnDelay": 2.4, "reward": 40 },
-        { "health": 400, "speed": 135.0, "spawnDelay": 2.8, "reward": 40 }
+        { "type": "fast", "spawnDelay": 0.0 },
+        { "type": "fast", "spawnDelay": 0.4 },
+        { "type": "tank", "spawnDelay": 0.8 },
+        { "type": "tank", "spawnDelay": 1.2 },
+        { "type": "fast", "spawnDelay": 1.6 },
+        { "type": "basic", "spawnDelay": 2.0 },
+        { "type": "tank", "spawnDelay": 2.4 },
+        { "type": "boss", "spawnDelay": 2.8 }
       ]
     },
     {
       "waveNumber": 7,
       "startTime": 120.0,
       "enemies": [
-        { "health": 400, "speed": 145.0, "spawnDelay": 0.0, "reward": 40 },
-        { "health": 400, "speed": 145.0, "spawnDelay": 0.4, "reward": 40 },
-        { "health": 400, "speed": 145.0, "spawnDelay": 0.8, "reward": 40 },
-        { "health": 450, "speed": 140.0, "spawnDelay": 1.2, "reward": 45 },
-        { "health": 450, "speed": 140.0, "spawnDelay": 1.6, "reward": 45 },
-        { "health": 450, "speed": 140.0, "spawnDelay": 2.0, "reward": 45 },
-        { "health": 500, "speed": 135.0, "spawnDelay": 2.4, "reward": 50 },
-        { "health": 500, "speed": 135.0, "spawnDelay": 2.8, "reward": 50 },
-        { "health": 500, "speed": 135.0, "spawnDelay": 3.2, "reward": 50 }
+        { "type": "tank", "spawnDelay": 0.0 },
+        { "type": "tank", "spawnDelay": 0.4 },
+        { "type": "fast", "spawnDelay": 0.8 },
+        { "type": "fast", "spawnDelay": 1.2 },
+        { "type": "fast", "spawnDelay": 1.6 },
+        { "type": "tank", "spawnDelay": 2.0 },
+        { "type": "boss", "spawnDelay": 2.4 },
+        { "type": "tank", "spawnDelay": 2.8 },
+        { "type": "boss", "spawnDelay": 3.2 }
       ]
     }
   ],

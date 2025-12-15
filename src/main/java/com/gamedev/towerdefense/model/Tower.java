@@ -10,11 +10,17 @@ public class Tower {
     private float baseAttackCooldown;
     private float projectileSpeed;
     private Position position;
-
     private int towerId;
+    private TargetingStrategy targetingStrategy;
 
     public Tower(int cost, int range, int damage, float attackCooldown, float projectileSpeed,
             Position position, int towerId) {
+        this(cost, range, damage, attackCooldown, projectileSpeed, position, towerId, 
+             new NearestEnemyStrategy());
+    }
+
+    public Tower(int cost, int range, int damage, float attackCooldown, float projectileSpeed,
+            Position position, int towerId, TargetingStrategy targetingStrategy) {
         this.cost = cost;
         this.range = range;
         this.damage = damage;
@@ -23,6 +29,7 @@ public class Tower {
         this.projectileSpeed = projectileSpeed;
         this.position = position;
         this.towerId = towerId;
+        this.targetingStrategy = targetingStrategy;
     }
 
     public int getCost() {
@@ -53,6 +60,14 @@ public class Tower {
         return towerId;
     }
 
+    public TargetingStrategy getTargetingStrategy() {
+        return targetingStrategy;
+    }
+
+    public void setTargetingStrategy(TargetingStrategy strategy) {
+        this.targetingStrategy = strategy;
+    }
+
     public void increaseDamage(int damage) {
         this.damage += damage;
     }
@@ -65,33 +80,24 @@ public class Tower {
         this.baseAttackCooldown -= cooldownDecrease;
     }
 
+    @Deprecated
     public Enemy getNearestEnemy(List<Enemy> enemies) {
-        Enemy nearestEnemy = null;
-        float nearestDistance = Float.MAX_VALUE;
-        for (Enemy enemy : enemies) {
-            if (!enemy.isAlive()) {
-                continue;
-            }
+        return new NearestEnemyStrategy().selectTarget(position, range, enemies);
+    }
 
-            float distance = Position.distance(this.position, enemy.getPosition());
-            if (distance <= range && distance < nearestDistance) {
-                nearestEnemy = enemy;
-                nearestDistance = distance;
-            }
-        }
-        return nearestEnemy;
+    public Enemy selectTarget(List<Enemy> enemies) {
+        return targetingStrategy.selectTarget(position, range, enemies);
     }
 
     public void update(float deltaTime, List<Enemy> enemies, List<Projectile> projectiles) {
         attackCooldown -= deltaTime;
 
-        Enemy target = getNearestEnemy(enemies);
+        Enemy target = selectTarget(enemies);
 
         if (target != null && attackCooldown <= 0) {
             Projectile bullet = new Projectile(this.position, target, projectileSpeed, damage);
             projectiles.add(bullet);
             attackCooldown = baseAttackCooldown;
-
         }
     }
 }

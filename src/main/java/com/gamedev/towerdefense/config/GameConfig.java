@@ -178,10 +178,15 @@ public class GameConfig {
     }
 
     public static class WaveEnemyConfig {
+        private String type;
         private int health;
         private float speed;
         private float spawnDelay;
         private int reward;
+
+        public String getType() {
+            return type;
+        }
 
         public int getHealth() {
             return health;
@@ -197,6 +202,10 @@ public class GameConfig {
 
         public int getReward() {
             return reward;
+        }
+
+        public boolean hasCustomStats() {
+            return health > 0 || speed > 0;
         }
     }
 
