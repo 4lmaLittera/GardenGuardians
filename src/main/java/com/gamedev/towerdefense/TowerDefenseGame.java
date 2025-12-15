@@ -6,16 +6,11 @@ import java.util.List;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.gamedev.towerdefense.config.GameConfig;
@@ -25,16 +20,11 @@ import com.gamedev.towerdefense.model.Enemy;
 import com.gamedev.towerdefense.model.EnemyFactory;
 import com.gamedev.towerdefense.model.GameState;
 import com.gamedev.towerdefense.model.MoneyCoin;
-import com.gamedev.towerdefense.model.NearestEnemyStrategy;
 import com.gamedev.towerdefense.model.Path;
 import com.gamedev.towerdefense.model.Position;
 import com.gamedev.towerdefense.model.Projectile;
-import com.gamedev.towerdefense.model.StrongestEnemyStrategy;
-import com.gamedev.towerdefense.model.TargetingStrategy;
 import com.gamedev.towerdefense.model.Tower;
 import com.gamedev.towerdefense.model.WaveManager;
-import com.gamedev.towerdefense.model.WeakestEnemyStrategy;
-import com.gamedev.towerdefense.util.AnimationManager;
 
 public class TowerDefenseGame extends ApplicationAdapter {
 
@@ -47,23 +37,12 @@ public class TowerDefenseGame extends ApplicationAdapter {
     public static final float DEFAULT_PROJECTILE_SPEED = 300f;
     public static final float DEFAULT_COIN_SPEED = 200f;
 
-    // Enemy animation defaults
-    public static final int ENEMY_FRAME_WIDTH = 32;
-    public static final int ENEMY_FRAME_HEIGHT = 32;
-    public static final int ENEMY_ANIM_COLS = 4;
-    public static final int ENEMY_ANIM_ROWS = 4;
-    public static final float ENEMY_FRAME_DURATION = 0.2f;
-
     // Rendering components
     private SpriteBatch batch;
     private OrthographicCamera camera;
     private Viewport viewport;
     private ShapeRenderer shapeRenderer;
-    private BitmapFont font;
-    private Texture backgroundTexture;
-    private Texture beetlTexture;
-    private AnimationManager enemyAnimation;
-    private Texture coinTexture;
+    private GameAssetLoader assetLoader;
 
     private Rectangle damageTextBounds;
     private Rectangle rangeTextBounds;
@@ -91,6 +70,7 @@ public class TowerDefenseGame extends ApplicationAdapter {
     private GameConfig.TowerTypeConfig selectedTowerType;
     private Tower selectedTower;
     private GameRenderer renderer;
+    private GameInputHandler inputHandler;
 
     @Override
     public void create() {
@@ -98,48 +78,12 @@ public class TowerDefenseGame extends ApplicationAdapter {
             batch = new SpriteBatch();
             shapeRenderer = new ShapeRenderer();
 
-            try {
-                backgroundTexture = new Texture(Gdx.files.internal("assets/images/grass_template2.jpg"));
-            } catch (GdxRuntimeException e) {
-                System.err.println("Failed to load background texture: " + e.getMessage());
-                backgroundTexture = null;
-            }
-
-            try {
-                beetlTexture = new Texture(Gdx.files.internal("assets/images/BeetleMove.png"));
-            } catch (GdxRuntimeException e) {
-                System.err.println("Failed to load enemy texture: " + e.getMessage());
-                beetlTexture = null;
-            }
-
-            if (beetlTexture != null) {
-                try {
-                    int frameWidth = ENEMY_FRAME_WIDTH;
-                    int frameHeight = ENEMY_FRAME_HEIGHT;
-                    int cols = ENEMY_ANIM_COLS;
-                    int rows = ENEMY_ANIM_ROWS;
-                    float frameDuration = ENEMY_FRAME_DURATION;
-                    enemyAnimation = new AnimationManager(beetlTexture, frameWidth, frameHeight, cols, rows,
-                            frameDuration);
-                } catch (GdxRuntimeException e) {
-                    System.err.println("Failed to create enemy animation: " + e.getMessage());
-                    enemyAnimation = null;
-                }
-            }
-
-            try {
-                coinTexture = new Texture(Gdx.files.internal("assets/images/coin.png"));
-            } catch (GdxRuntimeException e) {
-                System.err.println("Failed to load coin texture: " + e.getMessage());
-                coinTexture = null;
-            }
+            assetLoader = new GameAssetLoader();
+            assetLoader.loadAll();
 
             camera = new OrthographicCamera();
             camera.setToOrtho(false, WORLD_WIDTH, WORLD_HEIGHT);
             viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
-
-            font = new BitmapFont();
-            font.getData().setScale(1f, 1f);
 
             try {
                 gameConfig = GameConfig.load("game-config.json");
@@ -213,6 +157,7 @@ public class TowerDefenseGame extends ApplicationAdapter {
                 selectedTowerType = null;
             }
             renderer = new GameRenderer(this);
+            inputHandler = new GameInputHandler(this);
         } catch (RuntimeException e) {
             System.err.println("Critical error during game initialization: " + e.getMessage());
             throw e;
@@ -238,14 +183,14 @@ public class TowerDefenseGame extends ApplicationAdapter {
 
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
-        if (backgroundTexture != null) {
+        if (assetLoader.getBackgroundTexture() != null) {
             float worldWidth = gameConfig != null && gameConfig.getWorldWidth() > 0
                     ? gameConfig.getWorldWidth()
                     : WORLD_WIDTH;
             float worldHeight = gameConfig != null && gameConfig.getWorldHeight() > 0
                     ? gameConfig.getWorldHeight()
                     : WORLD_HEIGHT;
-            batch.draw(backgroundTexture, 0, 0, worldWidth, worldHeight);
+            batch.draw(assetLoader.getBackgroundTexture(), 0, 0, worldWidth, worldHeight);
         }
         batch.end();
 
@@ -285,27 +230,11 @@ public class TowerDefenseGame extends ApplicationAdapter {
         }
 
         try {
-            if (backgroundTexture != null) {
-                backgroundTexture.dispose();
+            if (assetLoader != null) {
+                assetLoader.dispose();
             }
         } catch (Exception e) {
-            System.err.println("Error disposing background texture: " + e.getMessage());
-        }
-
-        try {
-            if (beetlTexture != null) {
-                beetlTexture.dispose();
-            }
-        } catch (Exception e) {
-            System.err.println("Error disposing enemy texture: " + e.getMessage());
-        }
-
-        try {
-            if (font != null) {
-                font.dispose();
-            }
-        } catch (Exception e) {
-            System.err.println("Error disposing font: " + e.getMessage());
+            System.err.println("Error disposing assets: " + e.getMessage());
         }
     }
 
@@ -319,7 +248,7 @@ public class TowerDefenseGame extends ApplicationAdapter {
     }
 
     public com.badlogic.gdx.graphics.g2d.BitmapFont getFont() {
-        return font;
+        return assetLoader.getFont();
     }
 
     public com.badlogic.gdx.graphics.OrthographicCamera getCamera() {
@@ -335,15 +264,15 @@ public class TowerDefenseGame extends ApplicationAdapter {
     }
 
     public com.gamedev.towerdefense.util.AnimationManager getEnemyAnimation() {
-        return enemyAnimation;
+        return assetLoader.getEnemyAnimation();
     }
 
     public com.badlogic.gdx.graphics.Texture getCoinTexture() {
-        return coinTexture;
+        return assetLoader.getCoinTexture();
     }
 
     public com.badlogic.gdx.graphics.Texture getBackgroundTexture() {
-        return backgroundTexture;
+        return assetLoader.getBackgroundTexture();
     }
 
     public java.util.List<Enemy> getEnemies() {
@@ -406,9 +335,21 @@ public class TowerDefenseGame extends ApplicationAdapter {
         return gameState;
     }
 
+    public void setGameState(GameState state) {
+        this.gameState = state;
+    }
+
+    public void setSelectedTower(Tower tower) {
+        this.selectedTower = tower;
+    }
+
+    public void setSelectedTowerType(GameConfig.TowerTypeConfig towerType) {
+        this.selectedTowerType = towerType;
+    }
+
     private void updateGame(float deltaTime) {
         if (gameState == GameState.PAUSED) {
-            handleInput();
+            inputHandler.update();
             checkGameState();
             return;
         }
@@ -416,7 +357,7 @@ public class TowerDefenseGame extends ApplicationAdapter {
             waveManager.update(deltaTime, enemies, path);
         }
 
-        handleInput();
+        inputHandler.update();
         updateEnemies(deltaTime);
         checkGameState();
         updateMoneyCoins(deltaTime);
@@ -488,212 +429,6 @@ public class TowerDefenseGame extends ApplicationAdapter {
 
     }
 
-    private void handleInput() {
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            if (gameState == GameState.PAUSED) {
-                gameState = GameState.PLAYING;
-                return;
-            }
-            gameState = GameState.PAUSED;
-            return;
-        }
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.T) && selectedTower != null) {
-            cycleTargetingStrategy(selectedTower);
-        }
-
-        int towerKey = getTowerKeyPressed();
-
-        switch (towerKey) {
-            case 1 ->
-                toggleTowerSelection(0);
-            case 2 ->
-                toggleTowerSelection(1);
-            case 3 ->
-                toggleTowerSelection(2);
-        }
-
-        handleTowerPlacement();
-        Tower clickedTower = handleTowerClick();
-        if (clickedTower != null) {
-            selectedTower = clickedTower;
-        } else if (handleTowerDescriptionClick()) {
-        } else if (Gdx.input.justTouched()) {
-            selectedTower = null;
-        }
-    }
-
-    private void cycleTargetingStrategy(Tower tower) {
-        TargetingStrategy current = tower.getTargetingStrategy();
-        TargetingStrategy next;
-        
-        if (current instanceof NearestEnemyStrategy) {
-            next = new StrongestEnemyStrategy();
-        } else if (current instanceof StrongestEnemyStrategy) {
-            next = new WeakestEnemyStrategy();
-        } else {
-            next = new NearestEnemyStrategy();
-        }
-        
-        tower.setTargetingStrategy(next);
-    }
-
-    private boolean handleTowerDescriptionClick() {
-        if (!Gdx.input.justTouched()) {
-            return false;
-        }
-        if (selectedTower == null) {
-            return false;
-        }
-
-        int screenX = Gdx.input.getX();
-        int screenY = Gdx.input.getY();
-        Vector2 worldCoords = new Vector2(screenX, screenY);
-        viewport.unproject(worldCoords);
-
-        GameConfig.UpgradeConfig upgrades = gameConfig != null ? gameConfig.getUpgrades() : null;
-        if (upgrades == null) {
-            return false;
-        }
-
-        if (damageTextBounds.contains(worldCoords.x, worldCoords.y)) {
-            int damageCost = upgrades.getDamageCost();
-            int damageAmount = upgrades.getDamageAmount();
-            if (budgetManager.canAfford(damageCost)) {
-                budgetManager.spend(damageCost);
-                selectedTower.increaseDamage(damageAmount);
-            }
-            return true;
-        }
-        if (rangeTextBounds.contains(worldCoords.x, worldCoords.y)) {
-            int rangeCost = upgrades.getRangeCost();
-            int rangeAmount = upgrades.getRangeAmount();
-            if (budgetManager.canAfford(rangeCost)) {
-                budgetManager.spend(rangeCost);
-                selectedTower.increaseRange(rangeAmount);
-            }
-            return true;
-        }
-        if (cooldownTextBounds.contains(worldCoords.x, worldCoords.y)) {
-            int cooldownCost = upgrades.getCooldownCost();
-            float cooldownAmount = upgrades.getCooldownAmount();
-            if (budgetManager.canAfford(cooldownCost)) {
-                budgetManager.spend(cooldownCost);
-                selectedTower.decreaseAttackCooldown(cooldownAmount);
-            }
-            return true;
-        }
-        // Strategy toggle - click to cycle through targeting strategies
-        if (strategyTextBounds.contains(worldCoords.x, worldCoords.y)) {
-            cycleTargetingStrategy(selectedTower);
-            return true;
-        }
-        return false;
-    }
-
-    private int getTowerKeyPressed() {
-        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) {
-            return 1;
-        }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)) {
-            return 2;
-        }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_3)) {
-            return 3;
-        }
-        return 0;
-    }
-
-    private void toggleTowerSelection(int towerIndex) {
-        try {
-            if (gameConfig == null || gameConfig.getTowerTypes() == null) {
-                return;
-            }
-
-            if (towerIndex < 0 || towerIndex >= gameConfig.getTowerTypes().size()) {
-                return;
-            }
-
-            GameConfig.TowerTypeConfig towerType = gameConfig.getTowerTypes().get(towerIndex);
-
-            if (selectedTowerType == towerType) {
-                selectedTowerType = null;
-            } else {
-                selectedTowerType = towerType;
-            }
-        } catch (IndexOutOfBoundsException e) {
-            System.err.println("Invalid tower index: " + towerIndex + " - " + e.getMessage());
-        } catch (Exception e) {
-            System.err.println("Error toggling tower selection: " + e.getMessage());
-        }
-    }
-
-    private Tower handleTowerClick() {
-        if (!Gdx.input.justTouched()) {
-            return null;
-        }
-        if (selectedTowerType != null) {
-            return null;
-        }
-
-        int screenX = Gdx.input.getX();
-        int screenY = Gdx.input.getY();
-
-        Vector2 worldCoords = new Vector2(screenX, screenY);
-        viewport.unproject(worldCoords);
-
-        for (Tower tower : towers) {
-            if (worldCoords.x + 20 > tower.getPosition().getX()
-                    && worldCoords.x - 20 < tower.getPosition().getX()) {
-                if (worldCoords.y + 20 > tower.getPosition().getY()
-                        && worldCoords.y - 20 < tower.getPosition().getY()) {
-                    return tower;
-                }
-            }
-        }
-        return null;
-    }
-
-    private void handleTowerPlacement() {
-        if (!Gdx.input.justTouched()) {
-            return;
-        }
-
-        int screenX = Gdx.input.getX();
-        int screenY = Gdx.input.getY();
-
-        Vector2 worldCoords = new Vector2(screenX, screenY);
-        viewport.unproject(worldCoords);
-
-        float worldX = worldCoords.x;
-        float worldY = worldCoords.y;
-
-        if (selectedTowerType == null || !budgetManager.canAfford(selectedTowerType.getCost())) {
-            return;
-        }
-
-        if (!isValidTowerPlacement(worldX, worldY, selectedTowerType.getRange())) {
-            return;
-        }
-
-        Position towerPos = new Position(worldX, worldY);
-        float projectileSpeed = selectedTowerType.getProjectileSpeed() > 0
-                ? selectedTowerType.getProjectileSpeed()
-                : (gameConfig.getProjectileSpeed() > 0 ? gameConfig.getProjectileSpeed() : DEFAULT_PROJECTILE_SPEED);
-
-        Tower newTower = new Tower(
-                selectedTowerType.getCost(),
-                selectedTowerType.getRange(),
-                selectedTowerType.getDamage(),
-                selectedTowerType.getAttackCooldown(),
-                projectileSpeed,
-                towerPos,
-                selectedTowerType.getId());
-
-        towers.add(newTower);
-        budgetManager.spend(selectedTowerType.getCost());
-        selectedTowerType = null;
-    }
 
     public boolean isValidTowerPlacement(float x, float y, int newTowerRange) {
         Position pos = new Position(x, y);

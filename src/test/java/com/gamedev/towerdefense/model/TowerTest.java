@@ -30,7 +30,7 @@ public class TowerTest {
         Tower tower = new Tower(30, 100, 50, 0.5f, 300f, towerPos, 1);
         List<Enemy> enemies = new ArrayList<>();
 
-        assertNull(tower.getNearestEnemy(enemies));
+        assertNull(tower.selectTarget(enemies));
     }
 
     @Test
@@ -47,7 +47,7 @@ public class TowerTest {
         Enemy enemy = new Enemy(path, 100, 10.0f, 0, 10);
         enemies.add(enemy);
 
-        Enemy nearest = tower.getNearestEnemy(enemies);
+        Enemy nearest = tower.selectTarget(enemies);
         assertNotNull(nearest);
         assertEquals(enemy, nearest);
     }
@@ -66,7 +66,7 @@ public class TowerTest {
         Enemy enemy = new Enemy(path, 100, 10.0f, 0, 10);
         enemies.add(enemy);
 
-        assertNull(tower.getNearestEnemy(enemies));
+        assertNull(tower.selectTarget(enemies));
     }
 
     @Test
@@ -84,7 +84,7 @@ public class TowerTest {
         deadEnemy.takeDamage(100);
         enemies.add(deadEnemy);
 
-        assertNull(tower.getNearestEnemy(enemies));
+        assertNull(tower.selectTarget(enemies));
     }
 
     @Test
@@ -115,7 +115,7 @@ public class TowerTest {
         Enemy middleEnemy = new Enemy(middlePath, 100, 10.0f, 0, 10);
         enemies.add(middleEnemy);
 
-        Enemy nearest = tower.getNearestEnemy(enemies);
+        Enemy nearest = tower.selectTarget(enemies);
         assertNotNull(nearest);
         assertEquals(nearEnemy, nearest);
     }
