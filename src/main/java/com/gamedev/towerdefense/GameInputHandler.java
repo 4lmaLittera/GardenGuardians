@@ -234,7 +234,6 @@ public class GameInputHandler {
             }
             return true;
         }
-        // Strategy toggle - click to cycle through targeting strategies
         if (game.getStrategyTextBounds().contains(worldCoords.x, worldCoords.y)) {
             cycleTargetingStrategy(selectedTower);
             return true;
