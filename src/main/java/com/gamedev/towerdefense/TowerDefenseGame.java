@@ -1,8 +1,6 @@
 package com.gamedev.towerdefense;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -14,17 +12,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.gamedev.towerdefense.config.GameConfig;
-import com.gamedev.towerdefense.model.BudgetManager;
-import com.gamedev.towerdefense.model.CurvedPath;
-import com.gamedev.towerdefense.model.Enemy;
-import com.gamedev.towerdefense.model.EnemyFactory;
-import com.gamedev.towerdefense.model.GameState;
-import com.gamedev.towerdefense.model.MoneyCoin;
-import com.gamedev.towerdefense.model.Path;
-import com.gamedev.towerdefense.model.Position;
-import com.gamedev.towerdefense.model.Projectile;
-import com.gamedev.towerdefense.model.Tower;
-import com.gamedev.towerdefense.model.WaveManager;
+
 
 public class TowerDefenseGame extends ApplicationAdapter {
 
@@ -51,24 +39,9 @@ public class TowerDefenseGame extends ApplicationAdapter {
 
     // Game configuration and managers
     private GameConfig gameConfig;
-    private BudgetManager budgetManager;
-    private WaveManager waveManager;
-    private final EnemyFactory enemyFactory = new EnemyFactory();
+    // Game World
+    private GameWorld gameWorld;
 
-    // Game state
-    private int lives;
-    private GameState gameState = GameState.PLAYING;
-    private Path path;
-
-    // Game entities
-    private final List<Enemy> enemies = new ArrayList<>();
-    private final List<Tower> towers = new ArrayList<>();
-    private final List<Projectile> projectiles = new ArrayList<>();
-    private final List<MoneyCoin> moneyCoins = new ArrayList<>();
-
-    // Tower selection
-    private GameConfig.TowerTypeConfig selectedTowerType;
-    private Tower selectedTower;
     private GameRenderer renderer;
     private GameInputHandler inputHandler;
 
@@ -104,58 +77,7 @@ public class TowerDefenseGame extends ApplicationAdapter {
                 System.err.println("Failed to setup camera: " + e.getMessage());
             }
 
-            budgetManager = new BudgetManager(gameConfig.getInitialBudget());
-            lives = gameConfig.getInitialLives();
-
-            try {
-                List<Position> waypoints = gameConfig.getPathWaypoints();
-                if (waypoints == null || waypoints.isEmpty()) {
-                    throw new RuntimeException("Path waypoints are missing or empty");
-                }
-                path = new CurvedPath(waypoints);
-            } catch (RuntimeException e) {
-                System.err.println("Failed to setup path: " + e.getMessage());
-                throw new RuntimeException("Cannot start game without path", e);
-            }
-
-            try {
-                if (gameConfig.getWaves() != null && !gameConfig.getWaves().isEmpty()) {
-                    waveManager = new WaveManager(gameConfig.getWaves());
-                } else {
-                    waveManager = new WaveManager(null);
-                }
-            } catch (RuntimeException e) {
-                System.err.println("Failed to setup wave manager: " + e.getMessage());
-                waveManager = new WaveManager(null);
-            }
-
-            try {
-                if (gameConfig.getInitialEnemies() != null) {
-                    for (GameConfig.EnemyConfig enemyConfig : gameConfig.getInitialEnemies()) {
-                        int reward = enemyConfig.getReward();
-                        if (reward == 0) {
-                            reward = 10;
-                        }
-                        // Using EnemyFactory pattern for enemy creation
-                        enemies.add(enemyFactory.createCustomEnemy(
-                            path, enemyConfig.getHealth(), enemyConfig.getSpeed(), 0, reward));
-                    }
-                }
-            } catch (RuntimeException e) {
-                System.err.println("Failed to setup initial enemies: " + e.getMessage());
-            }
-
-            try {
-                if (gameConfig.getTowerTypes() != null && !gameConfig.getTowerTypes().isEmpty()) {
-                    selectedTowerType = gameConfig.getTowerTypes().get(0);
-                }
-            } catch (IndexOutOfBoundsException e) {
-                System.err.println("No tower types available: " + e.getMessage());
-                selectedTowerType = null;
-            } catch (RuntimeException e) {
-                System.err.println("Failed to setup tower selection: " + e.getMessage());
-                selectedTowerType = null;
-            }
+            gameWorld = new GameWorld(gameConfig);
             renderer = new GameRenderer(this);
             inputHandler = new GameInputHandler(this);
         } catch (RuntimeException e) {
@@ -196,9 +118,11 @@ public class TowerDefenseGame extends ApplicationAdapter {
 
         float deltaTime = Gdx.graphics.getDeltaTime();
 
-        if (gameState == GameState.PLAYING || gameState == GameState.PAUSED) {
-            updateGame(deltaTime);
+        if (gameWorld != null) {
+            gameWorld.update(deltaTime);
         }
+
+        inputHandler.update();
 
         shapeRenderer.setProjectionMatrix(camera.combined);
         if (renderer != null) {
@@ -274,45 +198,8 @@ public class TowerDefenseGame extends ApplicationAdapter {
     public com.badlogic.gdx.graphics.Texture getBackgroundTexture() {
         return assetLoader.getBackgroundTexture();
     }
-
-    public java.util.List<Enemy> getEnemies() {
-        return enemies;
-    }
-
-    public java.util.List<Tower> getTowers() {
-        return towers;
-    }
-
-    public java.util.List<Projectile> getProjectiles() {
-        return projectiles;
-    }
-
-    public java.util.List<MoneyCoin> getMoneyCoins() {
-        return moneyCoins;
-    }
-
-    public GameConfig.TowerTypeConfig getSelectedTowerType() {
-        return selectedTowerType;
-    }
-
-    public Tower getSelectedTower() {
-        return selectedTower;
-    }
-
-    public BudgetManager getBudgetManager() {
-        return budgetManager;
-    }
-
-    public WaveManager getWaveManager() {
-        return waveManager;
-    }
-
-    public Path getPath() {
-        return path;
-    }
-
-    public int getLives() {
-        return lives;
+    public GameWorld getGameWorld() {
+        return gameWorld;
     }
 
     public com.badlogic.gdx.math.Rectangle getDamageTextBounds() {
@@ -330,199 +217,4 @@ public class TowerDefenseGame extends ApplicationAdapter {
     public com.badlogic.gdx.math.Rectangle getStrategyTextBounds() {
         return strategyTextBounds;
     }
-
-    public com.gamedev.towerdefense.model.GameState getGameState() {
-        return gameState;
-    }
-
-    public void setGameState(GameState state) {
-        this.gameState = state;
-    }
-
-    public void setSelectedTower(Tower tower) {
-        this.selectedTower = tower;
-    }
-
-    public void setSelectedTowerType(GameConfig.TowerTypeConfig towerType) {
-        this.selectedTowerType = towerType;
-    }
-
-    private void updateGame(float deltaTime) {
-        if (gameState == GameState.PAUSED) {
-            inputHandler.update();
-            checkGameState();
-            return;
-        }
-        if (waveManager != null) {
-            waveManager.update(deltaTime, enemies, path);
-        }
-
-        inputHandler.update();
-        updateEnemies(deltaTime);
-        checkGameState();
-        updateMoneyCoins(deltaTime);
-        updateTowers(deltaTime);
-        updateProjectiles(deltaTime);
-    }
-
-    private void updateEnemies(float deltaTime) {
-        Iterator<Enemy> it = enemies.iterator();
-        while (it.hasNext()) {
-            Enemy enemy = it.next();
-            enemy.update(deltaTime);
-            if (!enemy.isAlive()) {
-                Position enemyPos = enemy.getPosition();
-                Position budgetTextPos = new Position(UI_MARGIN, WORLD_HEIGHT - UI_MARGIN);
-                float coinSpeed = gameConfig.getMoneyCoinSpeed() > 0 ? gameConfig.getMoneyCoinSpeed() : DEFAULT_COIN_SPEED;
-                MoneyCoin coin = new MoneyCoin(enemyPos, budgetTextPos, coinSpeed, enemy.getReward());
-                moneyCoins.add(coin);
-                it.remove();
-            } else if (enemy.hasReachedEnd()) {
-                lives--;
-                it.remove();
-            }
-        }
-    }
-
-    private void updateTowers(float deltaTime) {
-        for (Tower tower : towers) {
-            tower.update(deltaTime, enemies, projectiles);
-        }
-    }
-
-    private void updateProjectiles(float deltaTime) {
-        Iterator<Projectile> projectileIt = projectiles.iterator();
-        while (projectileIt.hasNext()) {
-            Projectile projectile = projectileIt.next();
-            projectile.update(deltaTime);
-            if (projectile.hasHit()) {
-                projectileIt.remove();
-            }
-        }
-    }
-
-    private void updateMoneyCoins(float deltaTime) {
-        Iterator<MoneyCoin> coinIt = moneyCoins.iterator();
-        while (coinIt.hasNext()) {
-            MoneyCoin coin = coinIt.next();
-            coin.update(deltaTime);
-            if (coin.hasReachedTarget()) {
-                budgetManager.earn(coin.getReward());
-                coinIt.remove();
-            }
-        }
-    }
-
-    private void checkGameState() {
-        if (gameState != GameState.PLAYING) {
-            return;
-        }
-
-        if (lives <= 0) {
-            gameState = GameState.LOST;
-            return;
-        }
-
-        if (waveManager != null && waveManager.areAllWavesComplete() && enemies.isEmpty()) {
-            gameState = GameState.WON;
-        }
-
-    }
-
-
-    public boolean isValidTowerPlacement(float x, float y, int newTowerRange) {
-        Position pos = new Position(x, y);
-
-        int minSpacing = gameConfig.getTowerPlacement() != null ? gameConfig.getTowerPlacement().getMinTowerSpacing()
-                : 40;
-        int minPathDistance = gameConfig.getTowerPlacement() != null
-                ? gameConfig.getTowerPlacement().getMinDistanceFromPath()
-                : 30;
-
-        for (Tower tower : towers) {
-            float distance = Position.distance(pos, tower.getPosition());
-
-            if (distance < minSpacing) {
-                return false;
-            }
-
-            if (distance < tower.getRange()) {
-                return false;
-            }
-
-            if (distance < newTowerRange) {
-                return false;
-            }
-        }
-
-        try {
-            List<Position> waypoints = path.getWaypoints();
-            if (waypoints == null || waypoints.size() < 2) {
-                return false;
-            }
-
-            for (int i = 0; i < waypoints.size() - 1; i++) {
-                Position start = waypoints.get(i);
-                Position end = waypoints.get(i + 1);
-
-                float distToSegment = distanceToLineSegment(pos, start, end);
-                if (distToSegment < minPathDistance) {
-                    return false;
-                }
-            }
-        } catch (IndexOutOfBoundsException e) {
-            System.err.println("Index out of bounds when checking tower placement: " + e.getMessage());
-            return false;
-        } catch (RuntimeException e) {
-            System.err.println("Error checking tower placement: " + e.getMessage());
-            return false;
-        }
-
-        return true;
-    }
-
-    private float distanceToLineSegment(Position point, Position lineStart, Position lineEnd) {
-        if (point == null || lineStart == null || lineEnd == null) {
-            return Float.MAX_VALUE;
-        }
-
-        try {
-            float A = point.getX() - lineStart.getX();
-            float B = point.getY() - lineStart.getY();
-            float C = lineEnd.getX() - lineStart.getX();
-            float D = lineEnd.getY() - lineStart.getY();
-
-            float dot = A * C + B * D;
-            float lenSq = C * C + D * D;
-            float param = -1;
-
-            if (lenSq != 0) {
-                param = dot / lenSq;
-            }
-
-            float xx, yy;
-
-            if (param < 0) {
-                xx = lineStart.getX();
-                yy = lineStart.getY();
-            } else if (param > 1) {
-                xx = lineEnd.getX();
-                yy = lineEnd.getY();
-            } else {
-                xx = lineStart.getX() + param * C;
-                yy = lineStart.getY() + param * D;
-            }
-
-            float dx = point.getX() - xx;
-            float dy = point.getY() - yy;
-            return (float) Math.sqrt(dx * dx + dy * dy);
-        } catch (ArithmeticException e) {
-            System.err.println("Arithmetic error in distance calculation: " + e.getMessage());
-            return Float.MAX_VALUE;
-        } catch (RuntimeException e) {
-            System.err.println("Error calculating distance to line segment: " + e.getMessage());
-            return Float.MAX_VALUE;
-        }
-    }
-
 }

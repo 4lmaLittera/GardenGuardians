@@ -17,9 +17,11 @@ import com.gamedev.towerdefense.model.WeakestEnemyStrategy;
 public class GameInputHandler {
 
     private final TowerDefenseGame game;
+    private final GameWorld gameWorld;
 
     public GameInputHandler(TowerDefenseGame game) {
         this.game = game;
+        this.gameWorld = game.getGameWorld();
     }
 
     public void update() {
@@ -28,16 +30,16 @@ public class GameInputHandler {
 
     private void handleInput() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            if (game.getGameState() == GameState.PAUSED) {
-                game.setGameState(GameState.PLAYING);
+            if (gameWorld.getGameState() == GameState.PAUSED) {
+                gameWorld.setGameState(GameState.PLAYING);
                 return;
             }
-            game.setGameState(GameState.PAUSED);
+            gameWorld.setGameState(GameState.PAUSED);
             return;
         }
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.T) && game.getSelectedTower() != null) {
-            cycleTargetingStrategy(game.getSelectedTower());
+        if (Gdx.input.isKeyJustPressed(Input.Keys.T) && gameWorld.getSelectedTower() != null) {
+            cycleTargetingStrategy(gameWorld.getSelectedTower());
         }
 
         int towerKey = getTowerKeyPressed();
@@ -51,11 +53,11 @@ public class GameInputHandler {
         handleTowerPlacement();
         Tower clickedTower = handleTowerClick();
         if (clickedTower != null) {
-            game.setSelectedTower(clickedTower);
+            gameWorld.setSelectedTower(clickedTower);
         } else if (handleTowerDescriptionClick()) {
             // Click was handled by tower description
         } else if (Gdx.input.justTouched()) {
-            game.setSelectedTower(null);
+            gameWorld.setSelectedTower(null);
         }
     }
 
@@ -100,10 +102,10 @@ public class GameInputHandler {
 
             GameConfig.TowerTypeConfig towerType = gameConfig.getTowerTypes().get(towerIndex);
 
-            if (game.getSelectedTowerType() == towerType) {
-                game.setSelectedTowerType(null);
+            if (gameWorld.getSelectedTowerType() == towerType) {
+                gameWorld.setSelectedTowerType(null);
             } else {
-                game.setSelectedTowerType(towerType);
+                gameWorld.setSelectedTowerType(towerType);
             }
         } catch (IndexOutOfBoundsException e) {
             System.err.println("Invalid tower index: " + towerIndex + " - " + e.getMessage());
@@ -116,7 +118,7 @@ public class GameInputHandler {
         if (!Gdx.input.justTouched()) {
             return null;
         }
-        if (game.getSelectedTowerType() != null) {
+        if (gameWorld.getSelectedTowerType() != null) {
             return null;
         }
 
@@ -126,7 +128,7 @@ public class GameInputHandler {
         Vector2 worldCoords = new Vector2(screenX, screenY);
         game.getViewport().unproject(worldCoords);
 
-        for (Tower tower : game.getTowers()) {
+        for (Tower tower : gameWorld.getTowers()) {
             if (worldCoords.x + 20 > tower.getPosition().getX()
                     && worldCoords.x - 20 < tower.getPosition().getX()) {
                 if (worldCoords.y + 20 > tower.getPosition().getY()
@@ -152,14 +154,14 @@ public class GameInputHandler {
         float worldX = worldCoords.x;
         float worldY = worldCoords.y;
 
-        GameConfig.TowerTypeConfig selectedTowerType = game.getSelectedTowerType();
-        BudgetManager budgetManager = game.getBudgetManager();
+        GameConfig.TowerTypeConfig selectedTowerType = gameWorld.getSelectedTowerType();
+        BudgetManager budgetManager = gameWorld.getBudgetManager();
 
         if (selectedTowerType == null || !budgetManager.canAfford(selectedTowerType.getCost())) {
             return;
         }
 
-        if (!game.isValidTowerPlacement(worldX, worldY, selectedTowerType.getRange())) {
+        if (!gameWorld.isValidTowerPlacement(worldX, worldY, selectedTowerType.getRange())) {
             return;
         }
 
@@ -178,16 +180,16 @@ public class GameInputHandler {
                 towerPos,
                 selectedTowerType.getId());
 
-        game.getTowers().add(newTower);
+        gameWorld.getTowers().add(newTower);
         budgetManager.spend(selectedTowerType.getCost());
-        game.setSelectedTowerType(null);
+        gameWorld.setSelectedTowerType(null);
     }
 
     private boolean handleTowerDescriptionClick() {
         if (!Gdx.input.justTouched()) {
             return false;
         }
-        Tower selectedTower = game.getSelectedTower();
+        Tower selectedTower = gameWorld.getSelectedTower();
         if (selectedTower == null) {
             return false;
         }
@@ -203,7 +205,7 @@ public class GameInputHandler {
             return false;
         }
 
-        BudgetManager budgetManager = game.getBudgetManager();
+        BudgetManager budgetManager = gameWorld.getBudgetManager();
 
         if (game.getDamageTextBounds().contains(worldCoords.x, worldCoords.y)) {
             int damageCost = upgrades.getDamageCost();

@@ -19,9 +19,6 @@ import com.gamedev.towerdefense.model.Projectile;
 import com.gamedev.towerdefense.model.Tower;
 
 public class GameRenderer {
-
-    private final TowerDefenseGame game;
-
     private static final float WAYPOINT_RADIUS = 10f;
     private static final float TOWER_SIZE = 20f;
     private static final float TOWER_HALF = TOWER_SIZE / 2f;
@@ -37,8 +34,12 @@ public class GameRenderer {
     static final float BUDGET_LIVES_LINE_GAP = 20f;
     static final float WAVE_INFO_OFFSET_Y = 40f;
 
+    private final TowerDefenseGame game;
+    private final GameWorld gameWorld;
+
     public GameRenderer(TowerDefenseGame game) {
         this.game = game;
+        this.gameWorld = game.getGameWorld();
         this.uiRenderer = new GameUIRenderer(game);
     }
 
@@ -113,7 +114,7 @@ public class GameRenderer {
     }
 
     private void drawSceneElements() {
-        Path path = game.getPath();
+        Path path = gameWorld.getPath();
         drawPath(path);
         drawWaypoints(path);
         drawEnemies();
@@ -188,7 +189,7 @@ public class GameRenderer {
             return;
         }
         withBatch(batch -> {
-            for (Enemy enemy : game.getEnemies()) {
+            for (Enemy enemy : gameWorld.getEnemies()) {
                 if (!enemy.isAlive()) {
                     continue;
                 }
@@ -223,14 +224,14 @@ public class GameRenderer {
 
         withShapeRenderer(ShapeType.Line, () -> {
             game.getShapeRenderer().setColor(0.5f, 0.5f, 0.5f, rangeOpacity);
-            for (Tower tower : game.getTowers()) {
+            for (Tower tower : gameWorld.getTowers()) {
                 Position towerPos = tower.getPosition();
                 game.getShapeRenderer().circle(towerPos.getX(), towerPos.getY(), tower.getRange());
             }
         });
 
         withShapeRenderer(ShapeType.Filled, () -> {
-            for (Tower tower : game.getTowers()) {
+            for (Tower tower : gameWorld.getTowers()) {
                 Color towerColor = getTowerColor(tower.getTowerId());
                 game.getShapeRenderer().setColor(towerColor.r, towerColor.g, towerColor.b, towerColor.a);
                 Position towerPos = tower.getPosition();
@@ -243,7 +244,7 @@ public class GameRenderer {
     private void drawProjectiles() {
         withShapeRenderer(ShapeType.Filled, () -> {
             game.getShapeRenderer().setColor(1f, 1f, 0f, 1f);
-            for (Projectile projectile : game.getProjectiles()) {
+            for (Projectile projectile : gameWorld.getProjectiles()) {
                 Position projPos = projectile.getPosition();
                 game.getShapeRenderer().circle(projPos.getX(), projPos.getY(), PROJECTILE_RADIUS);
             }
@@ -253,7 +254,7 @@ public class GameRenderer {
     private void drawMoneyCoins() {
         withBatch(batch -> {
             if (game.getCoinTexture() != null) {
-                for (MoneyCoin coin : game.getMoneyCoins()) {
+                for (MoneyCoin coin : gameWorld.getMoneyCoins()) {
                     Position coinPos = coin.getPosition();
                     batch.draw(game.getCoinTexture(), coinPos.getX() - COIN_HALF, coinPos.getY() - COIN_HALF,
                             COIN_SIZE, COIN_SIZE);
@@ -263,11 +264,11 @@ public class GameRenderer {
     }
 
     private void drawTowerPreview() {
-        if (game.getSelectedTowerType() == null || game.getGameState() != com.gamedev.towerdefense.model.GameState.PLAYING) {
+        if (gameWorld.getSelectedTowerType() == null || gameWorld.getGameState() != com.gamedev.towerdefense.model.GameState.PLAYING) {
             return;
         }
 
-        if (game.getBudgetManager() == null || !game.getBudgetManager().canAfford(game.getSelectedTowerType().getCost())) {
+        if (gameWorld.getBudgetManager() == null || !gameWorld.getBudgetManager().canAfford(gameWorld.getSelectedTowerType().getCost())) {
             return;
         }
 
@@ -279,9 +280,9 @@ public class GameRenderer {
         float worldX = worldCoords.x;
         float worldY = worldCoords.y;
 
-        boolean isValidPlacement = game.isValidTowerPlacement(worldX, worldY, game.getSelectedTowerType().getRange());
+        boolean isValidPlacement = gameWorld.isValidTowerPlacement(worldX, worldY, gameWorld.getSelectedTowerType().getRange());
 
-        Color towerColor = getTowerColor(game.getSelectedTowerType().getId());
+        Color towerColor = getTowerColor(gameWorld.getSelectedTowerType().getId());
 
         withShapeRenderer(ShapeType.Line, () -> {
             float rangeOpacity = 0.5f;
@@ -290,7 +291,7 @@ public class GameRenderer {
             } else {
                 game.getShapeRenderer().setColor(1f, 0f, 0f, rangeOpacity);
             }
-            game.getShapeRenderer().circle(worldX, worldY, game.getSelectedTowerType().getRange());
+            game.getShapeRenderer().circle(worldX, worldY, gameWorld.getSelectedTowerType().getRange());
         });
 
         withShapeRenderer(ShapeType.Filled, () -> {

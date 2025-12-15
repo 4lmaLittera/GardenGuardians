@@ -6,9 +6,11 @@ import com.gamedev.towerdefense.model.Tower;
 public class GameUIRenderer {
 
     private final TowerDefenseGame game;
+    private final GameWorld gameWorld;
 
     public GameUIRenderer(TowerDefenseGame game) {
         this.game = game;
+        this.gameWorld = game.getGameWorld();
     }
 
     public void render() {
@@ -22,7 +24,7 @@ public class GameUIRenderer {
             drawWaveInfo();
             drawGameStateMessage();
 
-            Tower selected = game.getSelectedTower();
+            Tower selected = gameWorld.getSelectedTower();
             if (selected != null) {
                 float panelWidth = GameRenderer.STATS_PANEL_WIDTH;
                 float panelHeight = GameRenderer.STATS_PANEL_HEIGHT;
@@ -46,9 +48,9 @@ public class GameUIRenderer {
             game.getFont().setColor(1f, 1f, 1f, 1f);
             float budgetY = TowerDefenseGame.WORLD_HEIGHT - TowerDefenseGame.UI_MARGIN;
             float livesY = budgetY - GameRenderer.BUDGET_LIVES_LINE_GAP;
-            game.getFont().draw(game.getBatch(), "Budget: " + game.getBudgetManager().getBudget(),
+            game.getFont().draw(game.getBatch(), "Budget: " + gameWorld.getBudgetManager().getBudget(),
                     TowerDefenseGame.UI_MARGIN, budgetY);
-            game.getFont().draw(game.getBatch(), "Lives: " + game.getLives(), TowerDefenseGame.UI_MARGIN, livesY);
+            game.getFont().draw(game.getBatch(), "Lives: " + gameWorld.getLives(), TowerDefenseGame.UI_MARGIN, livesY);
         } catch (Exception e) {
             System.err.println("Error rendering budget/lives: " + e.getMessage());
         }
@@ -71,7 +73,7 @@ public class GameUIRenderer {
 
                     String towerText = (i + 1) + ". " + towerType.getName() + " - $" + towerType.getCost();
 
-                    if (game.getSelectedTowerType() == towerType) {
+                    if (gameWorld.getSelectedTowerType() == towerType) {
                         game.getFont().setColor(1f, 1f, 0f, 1f);
                     } else {
                         game.getFont().setColor(1f, 1f, 1f, 1f);
@@ -90,11 +92,11 @@ public class GameUIRenderer {
 
     private void drawWaveInfo() {
         try {
-            if (game.getWaveManager() != null) {
-                int currentWave = game.getWaveManager().getCurrentWaveNumber();
-                int totalWaves = game.getWaveManager().getTotalWaves();
+            if (gameWorld.getWaveManager() != null) {
+                int currentWave = gameWorld.getWaveManager().getCurrentWaveNumber();
+                int totalWaves = gameWorld.getWaveManager().getTotalWaves();
                 float waveY = TowerDefenseGame.WORLD_HEIGHT - TowerDefenseGame.UI_MARGIN - GameRenderer.WAVE_INFO_OFFSET_Y;
-                if (game.getWaveManager().areAllWavesComplete()) {
+                if (gameWorld.getWaveManager().areAllWavesComplete()) {
                     game.getFont().draw(game.getBatch(), "Wave: " + currentWave + "/" + totalWaves + " (Complete)",
                             TowerDefenseGame.UI_MARGIN, waveY);
                 } else {
@@ -109,12 +111,12 @@ public class GameUIRenderer {
 
     private void drawGameStateMessage() {
         try {
-            if (game.getGameState() == com.gamedev.towerdefense.model.GameState.WON) {
+            if (gameWorld.getGameState() == com.gamedev.towerdefense.model.GameState.WON) {
                 String winText = "YOU WIN!";
                 float textWidth = game.getFont().getData().getGlyph('A').width * winText.length();
                 game.getFont().draw(game.getBatch(), winText, TowerDefenseGame.WORLD_WIDTH / 2 - textWidth / 2,
                         TowerDefenseGame.WORLD_HEIGHT / 2);
-            } else if (game.getGameState() == com.gamedev.towerdefense.model.GameState.LOST) {
+            } else if (gameWorld.getGameState() == com.gamedev.towerdefense.model.GameState.LOST) {
                 String loseText = "GAME OVER!";
                 float textWidth = game.getFont().getData().getGlyph('A').width * loseText.length();
                 game.getFont().draw(game.getBatch(), loseText, TowerDefenseGame.WORLD_WIDTH / 2 - textWidth / 2,
@@ -126,7 +128,7 @@ public class GameUIRenderer {
     }
 
     private void drawTowerStatsPanel() {
-        Tower selectedTower = game.getSelectedTower();
+        Tower selectedTower = gameWorld.getSelectedTower();
         if (selectedTower == null) {
             return;
         }
@@ -191,19 +193,19 @@ public class GameUIRenderer {
         int cooldownCost = upgrades != null ? upgrades.getCooldownCost() : 0;
 
         String damageText = "Damage: " + selectedTower.getDamage();
-        boolean canAffordDamage = game.getBudgetManager().canAfford(damageCost);
+        boolean canAffordDamage = gameWorld.getBudgetManager().canAfford(damageCost);
         drawStatEntry(damageText, " [$" + damageCost + "]" + (canAffordDamage ? " +" : ""),
                 panelX + 10, startY, canAffordDamage, game.getDamageTextBounds());
         startY -= lineSpacing;
 
         String rangeText = "Range: " + selectedTower.getRange();
-        boolean canAffordRange = game.getBudgetManager().canAfford(rangeCost);
+        boolean canAffordRange = gameWorld.getBudgetManager().canAfford(rangeCost);
         drawStatEntry(rangeText, " [$" + rangeCost + "]" + (canAffordRange ? " +" : ""),
                 panelX + 10, startY, canAffordRange, game.getRangeTextBounds());
         startY -= lineSpacing;
 
         String cooldownText = "Cooldown: " + String.format("%.2f", selectedTower.getBaseAttackCooldown()) + "s";
-        boolean canAffordCooldown = game.getBudgetManager().canAfford(cooldownCost);
+        boolean canAffordCooldown = gameWorld.getBudgetManager().canAfford(cooldownCost);
         drawStatEntry(cooldownText, " [$" + cooldownCost + "]" + (canAffordCooldown ? " +" : ""),
                 panelX + 10, startY, canAffordCooldown, game.getCooldownTextBounds());
 
