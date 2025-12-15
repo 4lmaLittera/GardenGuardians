@@ -67,15 +67,5 @@ class EnemyFactoryTest {
         assertEquals(customReward, enemy.getReward());
     }
 
-    @Test
-    void createWave_createsCorrectNumberOfEnemies() {
-        int waveSize = 5;
-        Enemy[] wave = factory.createWave(1, testPath, waveSize);
-        
-        assertEquals(waveSize, wave.length);
-        for (Enemy enemy : wave) {
-            assertNotNull(enemy);
-            assertTrue(enemy.isAlive());
-        }
-    }
+
 }

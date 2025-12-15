@@ -54,30 +54,5 @@ public class EnemyFactory {
     public Enemy createCustomEnemy(Path path, int health, float speed, int startWaypointIndex, int reward) {
         return new Enemy(path, health, speed, startWaypointIndex, reward);
     }
-    public Enemy[] createWave(int waveNumber, Path path, int count) {
-        Enemy[] enemies = new Enemy[count];
-        
-        for (int i = 0; i < count; i++) {
-            String type = determineEnemyTypeForWave(waveNumber, i);
-            enemies[i] = createEnemy(type, path);
-        }
-        
-        return enemies;
-    }
-    
-    private String determineEnemyTypeForWave(int waveNumber, int positionInWave) {
-        if (waveNumber % 5 == 0 && positionInWave == 0) {
-            return TYPE_BOSS;
-        }
-        
-        if (waveNumber >= 3 && positionInWave % 4 == 0) {
-            return TYPE_TANK;
-        }
-        
-        if (waveNumber >= 2 && positionInWave % 3 == 0) {
-            return TYPE_FAST;
-        }
-        
-        return TYPE_BASIC;
-    }
+
 }

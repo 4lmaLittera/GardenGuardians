@@ -80,11 +80,6 @@ public class Tower {
         this.baseAttackCooldown -= cooldownDecrease;
     }
 
-    @Deprecated
-    public Enemy getNearestEnemy(List<Enemy> enemies) {
-        return new NearestEnemyStrategy().selectTarget(position, range, enemies);
-    }
-
     public Enemy selectTarget(List<Enemy> enemies) {
         return targetingStrategy.selectTarget(position, range, enemies);
     }
